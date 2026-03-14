@@ -21,6 +21,9 @@ interface SessionState {
   totalGames: number
   gamesPlayed: Record<GameType, number>
   userGoal: UserGoal | null
+  favoritePrompts: string[]
+  preferredCamera: string | null
+  preferredMic: string | null
 
   markPromptUsed: (prompt: string) => void
   getUnusedPrompt: (category: PromptCategory) => string
@@ -30,6 +33,11 @@ interface SessionState {
   recordScan: () => void
   recordGame: (game: GameType) => void
   setUserGoal: (goal: UserGoal) => void
+  addFavoritePrompt: (prompt: string) => void
+  removeFavoritePrompt: (prompt: string) => void
+  setPreferredCamera: (id: string | null) => void
+  setPreferredMic: (id: string | null) => void
+  resetProgress: () => void
 }
 
 const sessionStorageAdapter = createJSONStorage<SessionState>(() => localStorage)
@@ -57,8 +65,26 @@ export const useSessionStore = create<SessionState>()(
     'statue-mode': 0,
   },
   userGoal: null,
+  favoritePrompts: [],
+  preferredCamera: null,
+  preferredMic: null,
 
   setUserGoal: (goal) => set({ userGoal: goal }),
+
+  addFavoritePrompt: (prompt) => set((s) => ({
+    favoritePrompts: s.favoritePrompts.includes(prompt) ? s.favoritePrompts : [...s.favoritePrompts, prompt],
+  })),
+  removeFavoritePrompt: (prompt) => set((s) => ({
+    favoritePrompts: s.favoritePrompts.filter((p) => p !== prompt),
+  })),
+  setPreferredCamera: (id) => set({ preferredCamera: id }),
+  setPreferredMic: (id) => set({ preferredMic: id }),
+  resetProgress: () => {
+    localStorage.removeItem('speechmax-session')
+    localStorage.removeItem('speechmax-scan')
+    localStorage.removeItem('speechmax-game')
+    window.location.reload()
+  },
 
   markPromptUsed: (prompt) => {
     set((s) => {

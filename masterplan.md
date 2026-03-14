@@ -252,6 +252,62 @@ Easy tips are encouraging ("Take your time"), hard tips are challenge-oriented (
 
 ---
 
+## Sprint 12: Support Pages — History, Practice, Library, Insights, Goal Tracker, Share, Settings [COMPLETE]
+
+> Added 5 new pages, 3 components, 4 utilities, and wired share functionality into existing screens.
+
+### 12.1 — Utility modules [DONE]
+
+- `dateUtils.ts`: `formatRelativeTime`, `getWeekBounds`, `filterByWeek`
+- `goalConfig.ts`: Maps `UserGoal` → focus axes, tips, recommended drills
+- `insightGenerator.ts`: Compares this-week vs last-week axis averages, produces insight strings
+- `renderShareCard.ts`: Canvas 2D renderer for 1200×630 social share cards with radar chart
+
+### 12.2 — Store additions [DONE]
+
+Added to `sessionStore.ts`: `favoritePrompts`, `preferredCamera`, `preferredMic`, plus actions for each. `resetProgress()` clears all 3 localStorage keys + reloads.
+
+### 12.3 — Shared components [DONE]
+
+- `Sparkline.tsx`: SVG polyline chart for trend visualization
+- `ShareModal.tsx`: Modal with canvas preview, "Download PNG" + "Copy to Clipboard"
+- `GoalTrackerCard.tsx`: Shows goal label, focus axes with progress bars, drill count, tip
+
+### 12.4 — History page (`/history`) [DONE]
+
+Merged scan + game timeline sorted by timestamp desc. Sparkline showing overall score trend. Glass cards with type icon, relative time, score.
+
+### 12.5 — Library page (`/library`) [DONE]
+
+Tab row: All, Casual, Professional, Interview, Reading, Favorites. 40+ prompts with heart toggle for favorites, "Practice" button navigates to `/practice` with prompt state. Favorites persist via sessionStore.
+
+### 12.6 — Settings page (`/settings`) [DONE]
+
+Camera/mic dropdowns via `enumerateDevices()`, sound on/off toggle, user level display (Beginner/Intermediate/Advanced), per-axis difficulty breakdown, reset progress button with confirm guard.
+
+### 12.7 — Practice page (`/practice`) [DONE]
+
+Free-form practice mode: setup phase (textarea or "speak freely"), recording phase (fullscreen camera, manual stop, live WPM/filler HUD, elapsed timer), analyzing phase → nav to `/results`. Recording logic duplicated from RadarScan.
+
+### 12.8 — Insights page (`/insights`) [DONE]
+
+Weekly summary, improvement/weakness cards comparing axis averages, 5 sparklines per axis, RadarOverlay comparing this week vs last week averages.
+
+### 12.9 — Integration [DONE]
+
+- GoalTrackerCard added to GameQueue dashboard above "Training Games"
+- Quick links (History, Library, Insights, Free Practice) added to GameQueue
+- Settings gear icon in GameQueue top banner
+- Share button added to ScoreCard → opens ShareModal with game scores
+- Share button added to Progress → opens ShareModal with latest radar scores
+- 5 new lazy imports + routes in App.tsx
+
+**Files created:** `dateUtils.ts`, `goalConfig.ts`, `insightGenerator.ts`, `renderShareCard.ts`, `Sparkline.tsx`, `ShareModal.tsx`, `GoalTrackerCard.tsx`, `History.tsx`, `Practice.tsx`, `Library.tsx`, `Insights.tsx`, `Settings.tsx`
+
+**Files modified:** `sessionStore.ts`, `App.tsx`, `GameQueue.tsx`, `ScoreCard.tsx`, `Progress.tsx`
+
+---
+
 ## Key Architecture
 
 | Area | Files |
@@ -263,6 +319,8 @@ Easy tips are encouraging ("Take your time"), hard tips are challenge-oriented (
 | **Scoring** | `src/analysis/scoring/{radarScorer,gameScorer}.ts` |
 | **Sounds** | `src/lib/sounds.ts` |
 | **Badges/Prompts** | `src/lib/{badges,prompts}.ts` |
+| **Utilities** | `src/lib/{dateUtils,goalConfig,insightGenerator,renderShareCard}.ts` |
+| **Support Pages** | `src/gamification/screens/{History,Practice,Library,Insights,Settings}.tsx` |
 
 ---
 

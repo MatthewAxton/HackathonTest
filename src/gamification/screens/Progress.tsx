@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Flame, Target, Gamepad2, Trophy, TrendingUp } from 'lucide-react'
+import { Flame, Target, Gamepad2, Trophy, TrendingUp, Share2 } from 'lucide-react'
 import { TopBanner } from '../components/Banner'
 import { RadarChart } from '../components/radar-chart'
 import { RadarOverlay } from '../components/radar-chart/RadarOverlay'
+import { ShareModal } from '../components/ShareModal'
 import { useScanStore } from '../../store/scanStore'
 import { useRequireScan } from '../hooks/useRequireScan'
 import { useSessionStore } from '../../store/sessionStore'
@@ -16,6 +17,7 @@ const AXIS_KEYS = ['clarity', 'confidence', 'pacing', 'expression', 'composure']
 export default function Progress() {
   const hasScans = useRequireScan()
   const nav = useNavigate()
+  const [showShare, setShowShare] = useState(false)
   const getLatestScores = useScanStore((s) => s.getLatestScores)
   const getPreviousScores = useScanStore((s) => s.getPreviousScores)
   const scans = useScanStore((s) => s.scans)
@@ -57,7 +59,7 @@ export default function Progress() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-      <TopBanner backTo="/queue" title="Your Progress" right={<div style={{ display: 'flex', gap: 8 }}><button className="btn-secondary" style={{ height: 32, fontSize: 12, padding: '0 12px' }} onClick={() => nav('/queue')}>Games</button><button className="btn-primary" style={{ height: 32, fontSize: 12, padding: '0 12px' }} onClick={() => nav('/scan')}>Rescan</button></div>} />
+      <TopBanner backTo="/queue" title="Your Progress" right={<div style={{ display: 'flex', gap: 8 }}><button className="btn-secondary" style={{ height: 32, fontSize: 12, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 4 }} onClick={() => setShowShare(true)}><Share2 size={13} /> Share</button><button className="btn-secondary" style={{ height: 32, fontSize: 12, padding: '0 12px' }} onClick={() => nav('/queue')}>Games</button><button className="btn-primary" style={{ height: 32, fontSize: 12, padding: '0 12px' }} onClick={() => nav('/scan')}>Rescan</button></div>} />
 
       <div style={{ flex: 1, overflow: 'auto', padding: '20px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', gap: 24 }}>
@@ -169,6 +171,16 @@ export default function Progress() {
 
         </div>
       </div>
+      <AnimatePresence>
+        {showShare && latestScores && (
+          <ShareModal
+            scores={{ clarity: latestScores.clarity, confidence: latestScores.confidence, pacing: latestScores.pacing, expression: latestScores.expression, composure: latestScores.composure }}
+            overall={latestScores.overall}
+            title="My Speech Progress"
+            onClose={() => setShowShare(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

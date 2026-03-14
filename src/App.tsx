@@ -20,6 +20,11 @@ const StatueMode = lazy(() => import('./gamification/screens/StagePresence'))
 const ScoreCard = lazy(() => import('./gamification/screens/ScoreCard'))
 const Onboarding = lazy(() => import('./gamification/screens/Onboarding'))
 const Progress = lazy(() => import('./gamification/screens/Progress'))
+const History = lazy(() => import('./gamification/screens/History'))
+const Practice = lazy(() => import('./gamification/screens/Practice'))
+const Library = lazy(() => import('./gamification/screens/Library'))
+const Insights = lazy(() => import('./gamification/screens/Insights'))
+const Settings = lazy(() => import('./gamification/screens/Settings'))
 
 /* ====== ROOT APP WITH ROUTER ====== */
 export default function App() {
@@ -63,6 +68,11 @@ function AnimatedRoutes() {
               <Route path="/score/:game" element={<ScoreCard />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/progress" element={<Progress />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/practice" element={<Practice />} />
+              <Route path="/library" element={<Library />} />
+              <Route path="/insights" element={<Insights />} />
+              <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

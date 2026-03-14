@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
-import { TrendingUp, AlertCircle, CheckCircle, Clock, Eye, Lock, EyeOff, Waves, Minus, Activity, Shield } from 'lucide-react'
+import { TrendingUp, AlertCircle, CheckCircle, Clock, Eye, Lock, EyeOff, Waves, Minus, Activity, Shield, Share2 } from 'lucide-react'
 import { TopBanner } from '../components/Banner'
+import { ShareModal } from '../components/ShareModal'
 import { useGameStore } from '../../store/gameStore'
+import { useScanStore } from '../../store/scanStore'
 import type { GameType } from '../../analysis/types'
 import { useRequireScan } from '../hooks/useRequireScan'
 
@@ -157,6 +159,7 @@ export default function ScoreCard() {
     ? GAME_PATH_MAP[nextGameType]
     : '/progress'
 
+  const [showShare, setShowShare] = useState(false)
   const [showConfetti, setShowConfetti] = useState(true)
 
   const [confettiParticles] = useState(() =>
@@ -229,9 +232,21 @@ export default function ScoreCard() {
             <button className="btn-primary" style={{ flex: 1 }} onClick={() => nav(nextPath)}>{nextGameType ? 'Next Game' : 'View Progress'}</button>
             <button className="btn-secondary" style={{ flex: 1 }} onClick={() => nav(config.replay)}>Play Again</button>
           </div>
-          <div style={{ marginTop: 12 }}><button className="btn-secondary" style={{ height: 36, fontSize: 13, padding: '0 20px' }} onClick={() => nav('/queue')}>Back to Dashboard</button></div>
+          <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+            <button className="btn-secondary" style={{ height: 36, fontSize: 13, padding: '0 20px' }} onClick={() => nav('/queue')}>Back to Dashboard</button>
+            <button className="btn-secondary" style={{ height: 36, fontSize: 13, padding: '0 16px', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setShowShare(true)}>
+              <Share2 size={14} /> Share
+            </button>
+          </div>
         </div>
       </div>
+      <AnimatePresence>
+        {showShare && (() => {
+          const latestScores = useScanStore.getState().getLatestScores()
+          const shareScores = latestScores ? { clarity: latestScores.clarity, confidence: latestScores.confidence, pacing: latestScores.pacing, expression: latestScores.expression, composure: latestScores.composure } : { clarity: 50, confidence: 50, pacing: 50, expression: 50, composure: 50 }
+          return <ShareModal scores={shareScores} overall={currentScore} title={`${config.title} — ${currentScore}`} onClose={() => setShowShare(false)} />
+        })()}
+      </AnimatePresence>
     </div>
   )
 }

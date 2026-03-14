@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Flame, Crosshair, Eye, Activity, Waves, Shield, Award, ChevronRight } from 'lucide-react'
+import { Flame, Crosshair, Eye, Activity, Waves, Shield, Award, ChevronRight, Clock, BookOpen, BarChart3, Settings } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { TalkingBubble } from '../components/Mike'
 import { TopBanner } from '../components/Banner'
+import { GoalTrackerCard } from '../components/GoalTrackerCard'
 import { RadarChart } from '../components/radar-chart'
 import { useScanStore } from '../../store/scanStore'
 import { useGameStore } from '../../store/gameStore'
@@ -67,6 +68,7 @@ export default function GameQueue() {
           <span style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.1)', padding: '4px 12px', borderRadius: 10, fontSize: 13, fontWeight: 700 }}><Flame size={14} /> {streakDays || 1}</span>
           <button className="btn-secondary" style={{ height: 32, fontSize: 12, padding: '0 12px' }} onClick={() => nav('/progress')}>Progress</button>
           <button className="btn-secondary" style={{ height: 32, fontSize: 12, padding: '0 12px' }} onClick={() => nav('/scan')}>Rescan</button>
+          <button className="btn-secondary" style={{ height: 32, width: 32, fontSize: 12, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => nav('/settings')}><Settings size={14} /></button>
         </div>}
       />
 
@@ -110,6 +112,34 @@ export default function GameQueue() {
               </div>
             </motion.div>
           )}
+
+          {/* Quick Links */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            {[
+              { icon: Clock, label: 'History', path: '/history' },
+              { icon: BookOpen, label: 'Library', path: '/library' },
+              { icon: BarChart3, label: 'Insights', path: '/insights' },
+            ].map((link) => (
+              <button
+                key={link.label}
+                onClick={() => nav(link.path)}
+                className="btn-secondary"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, height: 34, fontSize: 12, padding: '0 14px' }}
+              >
+                <link.icon size={13} /> {link.label}
+              </button>
+            ))}
+            <button
+              onClick={() => nav('/practice')}
+              className="btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, height: 34, fontSize: 12, padding: '0 14px', marginLeft: 'auto' }}
+            >
+              Free Practice
+            </button>
+          </div>
+
+          {/* Goal Tracker */}
+          <GoalTrackerCard />
 
           <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Training Games</div>
           {games.map((g, i) => (
