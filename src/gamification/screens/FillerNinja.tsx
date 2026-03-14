@@ -30,7 +30,9 @@ export default function FillerNinja() {
   const [lastFiller, setLastFiller] = useState<string | null>(null)
   const [liveText, setLiveText] = useState('')
   const [ready, setReady] = useState(false)
+  const [silent, setSilent] = useState(false)
   const lastFillerTime = useRef(Date.now())
+  const lastSpeechTime = useRef(Date.now())
   const { requestMic, stopMic } = useMicrophone()
 
   // Auto-start on mount (Countdown screen already handled the pre-game)
@@ -65,6 +67,8 @@ export default function FillerNinja() {
     if (!ready) return
     const unsub = onTranscript((e) => {
       setLiveText(e.text)
+      lastSpeechTime.current = Date.now()
+      setSilent(false)
     })
     return unsub
   }, [ready])
@@ -95,6 +99,8 @@ export default function FillerNinja() {
       })
       // Streak = seconds since last filler
       setStreak(Math.floor((Date.now() - lastFillerTime.current) / 1000))
+      // Silence detection
+      if (Date.now() - lastSpeechTime.current > 5000) setSilent(true)
     }, 1000)
     return () => clearInterval(t)
   }, [nav, ready, stopMic])
@@ -132,7 +138,9 @@ export default function FillerNinja() {
             <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.4 }}>{prompt}</div>
           </div>
           <div style={{ maxWidth: 520, textAlign: 'center', fontSize: 16, fontWeight: 500, color: 'var(--muted)', lineHeight: 1.8, marginBottom: 12, minHeight: 60 }}>
-            {liveText || <span style={{ opacity: 0.4 }}>Start speaking...</span>}
+            {silent ? (
+              <motion.span animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ color: '#FCD34D', fontWeight: 700, fontSize: 18 }}>Keep talking!</motion.span>
+            ) : liveText ? liveText : <span style={{ opacity: 0.4 }}>Start speaking...</span>}
           </div>
 
           {/* Filler badge with slash animation */}

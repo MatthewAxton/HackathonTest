@@ -25,6 +25,8 @@ export default function PaceRacer() {
   const [wpm, setWpm] = useState(0)
   const [timeInZone, setTimeInZone] = useState(0)
   const [ready, setReady] = useState(false)
+  const [silent, setSilent] = useState(false)
+  const lastWpmTime = useRef(Date.now())
   const wpmRef = useRef(0)
   const timeInZoneRef = useRef(0)
   const { requestMic, stopMic } = useMicrophone()
@@ -49,6 +51,7 @@ export default function PaceRacer() {
     const unsub = onWpmReading((reading) => {
       setWpm(reading.rolling)
       wpmRef.current = reading.rolling
+      if (reading.rolling > 0) { lastWpmTime.current = Date.now(); setSilent(false) }
       if (reading.rolling >= zoneMin && reading.rolling <= zoneMax) {
         setTimeInZone(p => { timeInZoneRef.current = p + 1; return p + 1 })
       }
@@ -78,6 +81,7 @@ export default function PaceRacer() {
         }
         return p - 1
       })
+      if (Date.now() - lastWpmTime.current > 5000) setSilent(true)
     }, 1000)
     return () => clearInterval(t)
   }, [nav, ready, stopMic])
@@ -113,7 +117,7 @@ export default function PaceRacer() {
               <div style={{ position: 'absolute', top: -4, left: '33%', width: 2, height: 24, background: nearLow ? '#FCD34D' : 'var(--text)', opacity: nearLow ? 1 : 0.2, boxShadow: nearLow ? '0 0 8px rgba(252,211,77,0.6)' : 'none', transition: 'all 0.3s ease' }} />
               <div style={{ position: 'absolute', top: -4, left: '75%', width: 2, height: 24, background: nearHigh ? '#FCD34D' : 'var(--text)', opacity: nearHigh ? 1 : 0.2, boxShadow: nearHigh ? '0 0 8px rgba(252,211,77,0.6)' : 'none', transition: 'all 0.3s ease' }} />
             </div>
-            <div style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, color: inZone ? 'var(--green)' : 'var(--red)', marginTop: 8 }}>{inZone ? `${zoneMin}–${zoneMax} WPM Zone` : wpm === 0 ? 'Start speaking...' : 'Outside zone!'}</div>
+            <div style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, color: inZone ? 'var(--green)' : 'var(--red)', marginTop: 8 }}>{inZone ? `${zoneMin}–${zoneMax} WPM Zone` : silent ? 'Keep talking!' : wpm === 0 ? 'Start speaking...' : 'Outside zone!'}</div>
           </div>
           <div className="card" style={{ width: '100%', maxWidth: 600, textAlign: 'center', padding: '18px 28px', marginBottom: 10 }}>
             <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 6 }}>Freestyle</div>
