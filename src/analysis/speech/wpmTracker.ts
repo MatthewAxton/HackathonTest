@@ -12,11 +12,12 @@ interface WordEntry {
   timestamp: number
 }
 
-const ROLLING_WINDOW_MS = 3000
+const ROLLING_WINDOW_MS = 6000
 const subscribers = new Set<WpmCallback>()
 let startTime = 0
 let totalWords = 0
 let pendingInterimWords = 0
+let smoothedWpm = 0
 const buffer: WordEntry[] = []
 const wpmSamples: number[] = []
 let intervalId: ReturnType<typeof setInterval> | null = null
@@ -54,13 +55,17 @@ export function getSessionWpm(): number {
 export function getRollingWpm(): number {
   pruneBuffer()
   const wordsInWindow = buffer.reduce((sum, e) => sum + e.wordCount, 0) + pendingInterimWords
-  // words in 3 seconds × 20 = words per minute
-  return Math.round(wordsInWindow * 20)
+  // words in 6 seconds × 10 = words per minute
+  return Math.round(wordsInWindow * 10)
 }
 
 function emitReading() {
-  const reading = { session: getSessionWpm(), rolling: getRollingWpm() }
-  wpmSamples.push(reading.rolling)
+  const raw = getRollingWpm()
+  // Smooth: ease toward target (fast rise, slow decay)
+  const alpha = raw > smoothedWpm ? 0.5 : 0.2
+  smoothedWpm = Math.round(alpha * raw + (1 - alpha) * smoothedWpm)
+  const reading = { session: getSessionWpm(), rolling: smoothedWpm }
+  wpmSamples.push(smoothedWpm)
   subscribers.forEach((cb) => cb(reading))
 }
 
@@ -75,6 +80,7 @@ export function startWpmTracking(): void {
   startTime = 0
   totalWords = 0
   pendingInterimWords = 0
+  smoothedWpm = 0
   buffer.length = 0
   wpmSamples.length = 0
   unsubTranscript = onTranscript(processTranscript)
