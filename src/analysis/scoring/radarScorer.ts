@@ -18,7 +18,7 @@ function clamp(v: number): number {
 function scoreClarity(raw: ScanRawData): number {
   if (raw.durationSeconds <= 0) return 50
   const fillersPerMinute = (raw.fillerCount / raw.durationSeconds) * 60
-  return clamp(100 - fillersPerMinute * 10)
+  return clamp(100 - fillersPerMinute * 15)
 }
 
 /**
@@ -52,7 +52,7 @@ function scoreExpression(raw: ScanRawData): number {
  * Formula: stillnessPercent × 0.7 + (100 - fidgetCount × 5) × 0.3
  */
 function scoreComposure(raw: ScanRawData): number {
-  const fidgetPenalty = Math.max(0, 100 - raw.fidgetCount * 5)
+  const fidgetPenalty = Math.max(0, 100 - raw.fidgetCount * 8)
   return clamp(raw.stillnessPercent * 0.7 + fidgetPenalty * 0.3)
 }
 

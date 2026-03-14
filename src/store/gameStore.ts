@@ -54,8 +54,8 @@ export const useGameStore = create<GameState>()(
     if (!latestScores) return 'easy'
     const axis = GAME_AXIS_MAP[game]
     const score = latestScores[axis]
-    if (score <= 40) return 'easy'
-    if (score <= 70) return 'medium'
+    if (score <= 30) return 'easy'
+    if (score <= 55) return 'medium'
     return 'hard'
   },
 

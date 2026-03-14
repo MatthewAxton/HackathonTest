@@ -68,12 +68,12 @@ export function computeGameScore(metrics: GameMetrics): number {
       const { pitchVariation, monotoneSeconds, totalSeconds } = metrics.data
       if (totalSeconds <= 0) return 50
       const variationScore = Math.min(60, pitchVariation * 3)
-      const monotonePenalty = (monotoneSeconds / totalSeconds) * 40
+      const monotonePenalty = (monotoneSeconds / totalSeconds) * 60
       return clamp(variationScore + 40 - monotonePenalty)
     }
     case 'statue-mode': {
       const { stillnessPercent, movementAlerts } = metrics.data
-      return clamp(stillnessPercent - movementAlerts * 5)
+      return clamp(stillnessPercent - movementAlerts * 8)
     }
   }
 }
