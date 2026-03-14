@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Eye, Zap, Lock, ArrowLeft } from 'lucide-react'
+import { Eye, Zap, Lock, ArrowLeft, AlertTriangle } from 'lucide-react'
 import GameIntro from '../components/GameIntro'
 import { CameraFeed } from '../components/CameraFeed'
 import { EyeContactIndicator } from '../components/EyeContactIndicator'
@@ -10,7 +10,7 @@ import { computeSimpleGameScore } from '../../analysis/scoring/gameScorer'
 import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRequireScan } from '../hooks/useRequireScan'
-import { playGameComplete, playBadgeEarned } from '../../lib/sounds'
+import { playGameComplete, playBadgeEarned, playCountdownBeep } from '../../lib/sounds'
 import { getPromptCategory, getPromptLabel } from '../../lib/goalPromptMap'
 import type { Difficulty } from '../../analysis/types'
 
@@ -45,7 +45,11 @@ export default function EyeLock() {
   const [charge, setCharge] = useState(0)
   const [burstCount, setBurstCount] = useState(0)
   const [phase, setPhase] = useState<'intro' | 'playing'>('intro')
+  const [lostWarning, setLostWarning] = useState(false)
+  const [streakFlash, setStreakFlash] = useState(0)
   const finished = useRef(false)
+  const lastQualityRef = useRef<string>('lost')
+  const lostSoundCooldown = useRef(0)
 
   const eye = useEyeContact()
   const videoRef = useRef<HTMLVideoElement | null>(null)
@@ -78,6 +82,32 @@ export default function EyeLock() {
     if (!ready) return
     tryStartTracking()
   }, [ready, eye.modelReady, tryStartTracking])
+
+  // Sound + visual feedback when quality changes
+  useEffect(() => {
+    if (!ready) return
+    const prev = lastQualityRef.current
+    const curr = eye.quality
+    lastQualityRef.current = curr
+
+    // Gaze lost — show warning + play alert sound
+    if (curr === 'lost' && prev !== 'lost') {
+      setLostWarning(true)
+      const now = Date.now()
+      if (now - lostSoundCooldown.current > 1500) {
+        playCountdownBeep()
+        lostSoundCooldown.current = now
+      }
+    }
+    // Gaze recovered — hide warning, flash green
+    if (curr === 'good' && prev !== 'good') {
+      setLostWarning(false)
+      setStreakFlash(Date.now())
+    }
+    if (curr === 'weak') {
+      setLostWarning(false)
+    }
+  }, [ready, eye.quality])
 
   // Power ring: charges while maintaining eye contact
   useEffect(() => {
@@ -136,8 +166,8 @@ export default function EyeLock() {
       icon={Eye}
       steps={[
         'Look directly at the camera while answering the question',
-        'The screen glows green when your gaze is locked',
-        'Looking away dims the screen — stay focused!',
+        'The screen goes dark when you look away — stay locked!',
+        'Maintain eye contact to charge the power ring and earn bursts',
       ]}
       goal="Keep your gaze locked for as much of the session as possible"
       tip={config.tip}
@@ -156,6 +186,9 @@ export default function EyeLock() {
   const color = QUALITY_COLORS[eye.quality]
   const mins = Math.floor(time / 60)
   const secs = time % 60
+
+  // Compute dim level based on quality
+  const dimOpacity = eye.quality === 'good' ? 0 : eye.quality === 'weak' ? 0.4 : 0.7
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', background: '#000' }}>
@@ -179,37 +212,97 @@ export default function EyeLock() {
         }
       />
 
-      {/* Quality overlay pulses */}
+      {/* Strong dim overlay — progressive darkening when not looking */}
+      <motion.div
+        animate={{ opacity: ready ? dimOpacity : 0 }}
+        transition={{ duration: 0.4 }}
+        style={{ position: 'absolute', inset: 0, background: '#000', pointerEvents: 'none', zIndex: 5 }}
+      />
+
+      {/* Green glow when looking — subtle edge glow */}
       <AnimatePresence>
         {ready && eye.quality === 'good' && (
           <motion.div
-            key="pulse-good"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 1, 0] }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ position: 'absolute', inset: 0, background: 'rgba(88,204,2,0.03)', pointerEvents: 'none', zIndex: 5 }}
-          />
-        )}
-        {ready && eye.quality === 'weak' && (
-          <motion.div
-            key="pulse-weak"
+            key="glow-good"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)', pointerEvents: 'none', zIndex: 5 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 5,
+              boxShadow: 'inset 0 0 80px rgba(88,204,2,0.15), inset 0 0 200px rgba(88,204,2,0.05)',
+            }}
           />
         )}
+      </AnimatePresence>
+
+      {/* Red vignette when lost */}
+      <AnimatePresence>
         {ready && eye.quality === 'lost' && (
           <motion.div
-            key="pulse-lost"
+            key="vignette-lost"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', pointerEvents: 'none', zIndex: 5 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 6,
+              boxShadow: 'inset 0 0 120px rgba(255,75,75,0.3), inset 0 0 300px rgba(255,75,75,0.15)',
+            }}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Recovery flash — green flash when re-locking */}
+      <AnimatePresence>
+        {streakFlash > 0 && (
+          <motion.div
+            key={streakFlash}
+            initial={{ opacity: 0.3 }}
+            animate={{ opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            style={{
+              position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 6,
+              background: 'rgba(88,204,2,0.1)',
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* "LOOK AT THE CAMERA" warning */}
+      <AnimatePresence>
+        {lostWarning && ready && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            style={{
+              position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+              zIndex: 30, pointerEvents: 'none', textAlign: 'center',
+            }}
+          >
+            <motion.div
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+              style={{
+                ...glassCard,
+                background: 'rgba(255,75,75,0.2)',
+                border: '2px solid rgba(255,75,75,0.4)',
+                padding: '20px 40px',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+              }}
+            >
+              <AlertTriangle size={28} color="#FF4B4B" />
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#FF4B4B', letterSpacing: 1, textTransform: 'uppercase' }}>
+                Look at the camera!
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
+                Your score is dropping
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -255,14 +348,28 @@ export default function EyeLock() {
 
       {/* Top-right: Stats */}
       <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 20, display: 'flex', gap: 8, alignItems: 'center' }}>
-        <div style={{ ...glassCard, fontSize: 14, fontWeight: 700, color, transition: 'color 0.4s' }}>
-          {eye.sessionPercent}% Engaged
+        {/* Session percentage — large and prominent */}
+        <div style={{
+          ...glassCard,
+          fontSize: 22, fontWeight: 800, padding: '8px 18px',
+          color: eye.sessionPercent >= 70 ? '#58CC02' : eye.sessionPercent >= 40 ? '#FCD34D' : '#FF4B4B',
+          transition: 'color 0.4s',
+          borderColor: eye.quality === 'good' ? 'rgba(88,204,2,0.3)' : 'rgba(255,255,255,0.1)',
+        }}>
+          {eye.sessionPercent}%
+          <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginLeft: 6, textTransform: 'uppercase' }}>score</span>
         </div>
         <div style={{ ...glassCard, fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: 6 }}>
           <Zap size={14} /> Best: {eye.longestStreak}s
         </div>
-        <div style={{ ...glassCard, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Lock size={14} /> {eye.quality === 'good' ? 'Locked' : eye.quality === 'weak' ? 'Drifting' : 'Lost'}
+        <div style={{
+          ...glassCard, fontSize: 13, fontWeight: 700,
+          display: 'flex', alignItems: 'center', gap: 6,
+          color,
+          borderColor: eye.quality === 'good' ? 'rgba(88,204,2,0.3)' : eye.quality === 'lost' ? 'rgba(255,75,75,0.3)' : 'rgba(255,255,255,0.1)',
+          transition: 'color 0.3s, border-color 0.3s',
+        }}>
+          <Lock size={14} /> {eye.quality === 'good' ? 'LOCKED' : eye.quality === 'weak' ? 'Drifting...' : 'LOST!'}
         </div>
       </div>
 
@@ -290,7 +397,7 @@ export default function EyeLock() {
         </motion.div>
       )}
 
-      {/* Bottom-left: Power ring */}
+      {/* Bottom-left: Power ring + streak */}
       <div style={{ position: 'absolute', bottom: 20, left: 16, zIndex: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ ...glassCard, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px' }}>
           <div style={{ position: 'relative', width: 48, height: 48 }}>
@@ -317,6 +424,23 @@ export default function EyeLock() {
             </div>
           </div>
         </div>
+
+        {/* Current streak badge */}
+        {eye.currentStreak > 0 && (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            style={{
+              ...glassCard,
+              borderColor: 'rgba(88,204,2,0.3)',
+              padding: '8px 14px',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            <span style={{ fontSize: 20, fontWeight: 800, color: '#58CC02' }}>{eye.currentStreak}s</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>streak</span>
+          </motion.div>
+        )}
       </div>
     </div>
   )
