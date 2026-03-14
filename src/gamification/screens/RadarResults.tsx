@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Crosshair, Eye, Activity, Waves, Shield, ArrowRight } from 'lucide-react'
-import { TopBanner, BottomBanner } from '../components/Banner'
-import { MikeWithBubble } from '../components/Mike'
+import { Crosshair, Eye, Activity, Waves, Shield } from 'lucide-react'
+import { TopBanner } from '../components/Banner'
 import { RadarChart } from '../components/radar-chart'
 import { RadarOverlay } from '../components/radar-chart/RadarOverlay'
 import { useScanStore } from '../../store/scanStore'
@@ -59,7 +58,7 @@ export default function RadarResults() {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         <div style={{ width: '100%', maxWidth: 1060, display: 'flex', gap: 56, padding: '8px 48px', alignItems: 'center' }}>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }} style={{ width: 380, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <MikeWithBubble text={`Here's your profile! Let's work on <strong style='color:var(--purple)'>${weakestName}</strong> first.`} state="talking" size={110} />
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--muted)', marginBottom: 8 }}>Let's work on <span style={{ color: 'var(--purple)', fontWeight: 700 }}>{weakestName}</span> first.</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '8px 0' }}>
               <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} style={{ fontSize: 64, fontWeight: 900, lineHeight: 1, background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{Math.round(overall)}</motion.span>
               <div><div style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)' }}>Speech<span style={{ color: 'var(--purple)' }}>MAX</span> Score</div><div style={{ display: 'inline-block', background: 'var(--surface)', color: 'var(--purple)', fontSize: 20, fontWeight: 800, padding: '4px 16px', borderRadius: 12, marginTop: 4 }}>{grade}</div></div>
@@ -95,7 +94,6 @@ export default function RadarResults() {
           </motion.div>
         </div>
       </div>
-      <BottomBanner left={<div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 14, padding: '8px 16px', fontSize: 13, fontWeight: 600 }}>Let's work on {weakestName} first!</div>} center={<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><div style={{ fontSize: 22, fontWeight: 800 }}>5 Games Ready</div><div style={{ fontSize: 11, fontWeight: 600, opacity: 0.7, textTransform: 'uppercase', letterSpacing: 0.5 }}>Personalised for you</div></div>} right={<ArrowRight size={18} />} />
     </div>
   )
 }

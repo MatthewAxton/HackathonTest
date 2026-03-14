@@ -2,8 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Activity, Eye } from 'lucide-react'
-import { TopBanner, BottomBanner } from '../components/Banner'
-import { MikeWithBubble } from '../components/Mike'
+import { TopBanner } from '../components/Banner'
 import { AudioWave } from '../components/AudioWave'
 import { CameraFeed } from '../components/CameraFeed'
 import { startTranscription, stopTranscription, onTranscript, getTranscriberStatus } from '../../analysis/speech/transcriber'
@@ -195,7 +194,6 @@ export default function RadarScan() {
       <TopBanner title="30-Second Scan" center={<span style={{ background: 'rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: 12, fontSize: 15, fontWeight: 800 }}>0:{time.toString().padStart(2, '0')}</span>} right={<span style={{ fontSize: 13, opacity: 0.8 }}>Analysing your speech...</span>} />
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         <div style={{ width: '100%', maxWidth: 960, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 40px' }}>
-          <MikeWithBubble text="Just read naturally — I'm analysing everything." state="talking" size={90} />
           <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}
             style={{ width: '100%', maxWidth: 640, margin: '10px 0' }}>
             <CameraFeed
@@ -227,7 +225,6 @@ export default function RadarScan() {
           </div>
         </div>
       </div>
-      <BottomBanner left={<div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 14, padding: '8px 16px', fontSize: 13, fontWeight: 600 }}>Scanning your profile...</div>} center={<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><div style={{ fontSize: 22, fontWeight: 800 }}>Scanning...</div><div style={{ fontSize: 11, fontWeight: 600, opacity: 0.7, textTransform: 'uppercase', letterSpacing: 0.5 }}>Building your profile</div></div>} />
     </div>
   )
 }

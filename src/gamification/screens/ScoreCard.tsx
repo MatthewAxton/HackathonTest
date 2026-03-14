@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
-import { TrendingUp, AlertCircle, CheckCircle, Clock, Eye, Lock, EyeOff, Waves, Minus, ArrowRight, Activity, Shield } from 'lucide-react'
-import { TopBanner, BottomBanner } from '../components/Banner'
-import { MikeWithBubble } from '../components/Mike'
+import { TrendingUp, AlertCircle, CheckCircle, Clock, Eye, Lock, EyeOff, Waves, Minus, Activity, Shield } from 'lucide-react'
+import { TopBanner } from '../components/Banner'
 import { useGameStore } from '../../store/gameStore'
 import type { GameType } from '../../analysis/types'
 import { useRequireScan } from '../hooks/useRequireScan'
@@ -148,14 +147,6 @@ export default function ScoreCard() {
       <TopBanner backTo="/queue" title="Session Complete" right={<span style={{ fontSize: 13, opacity: 0.8 }}>{config.title} · {config.axis}</span>} />
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         <div style={{ width: '100%', maxWidth: 960, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px 40px' }}>
-          <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', delay: 0.5, damping: 10, stiffness: 200 }}
-          >
-            <MikeWithBubble text={message} state="talking" size={90} delay={1.5} />
-          </motion.div>
-          <div style={{ height: 8 }} />
           <motion.div initial={{ scale: 0, rotate: -10 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', damping: 8, stiffness: 150, delay: 0.5 }} style={{ fontSize: 64, fontWeight: 900, lineHeight: 1, background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{currentScore}</motion.div>
           <div style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600, margin: '4px 0 6px' }}>
             {prevResult ? `was ${prevScore} → now ${currentScore}` : `Score: ${currentScore}`}
@@ -180,7 +171,6 @@ export default function ScoreCard() {
           <div style={{ marginTop: 12 }}><button className="btn-secondary" style={{ height: 36, fontSize: 13, padding: '0 20px' }} onClick={() => nav('/queue')}>Back to Dashboard</button></div>
         </div>
       </div>
-      <BottomBanner left={<div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 14, padding: '8px 16px', fontSize: 13, fontWeight: 600 }}>{message}</div>} center={<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><div style={{ fontSize: 22, fontWeight: 800 }}>{prevResult ? `${improvement > 0 ? '+' : ''}${improvement}` : currentScore}</div><div style={{ fontSize: 11, fontWeight: 600, opacity: 0.7, textTransform: 'uppercase', letterSpacing: 0.5 }}>{config.axis} {prevResult ? 'Change' : 'Score'}</div></div>} right={<><ArrowRight size={18} /> Next</>} />
     </div>
   )
 }

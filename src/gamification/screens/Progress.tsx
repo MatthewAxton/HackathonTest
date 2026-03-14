@@ -39,7 +39,7 @@ export default function Progress() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-      <TopBanner backTo="/queue" title="Your Progress" right={<span style={{ fontSize: 13, opacity: 0.8 }}>Keep going!</span>} />
+      <TopBanner backTo="/queue" title="Your Progress" right={<div style={{ display: 'flex', gap: 8 }}><button className="btn-secondary" style={{ height: 32, fontSize: 12, padding: '0 12px' }} onClick={() => nav('/queue')}>Games</button><button className="btn-primary" style={{ height: 32, fontSize: 12, padding: '0 12px' }} onClick={() => nav('/scan')}>Rescan</button></div>} />
 
       <div style={{ flex: 1, overflow: 'auto', padding: '24px 32px' }}>
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
