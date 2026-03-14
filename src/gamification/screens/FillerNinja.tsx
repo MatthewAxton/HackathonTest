@@ -13,18 +13,29 @@ import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRequireScan } from '../hooks/useRequireScan'
 import { playFillerBuzz, playGameComplete, playBadgeEarned } from '../../lib/sounds'
+import { getPromptCategory, getPromptLabel } from '../../lib/goalPromptMap'
+import type { Difficulty } from '../../analysis/types'
 
 const FILLER_TARGETS = ['um', 'uh', 'like', 'so', 'you know', 'basically', 'actually', 'right']
 const FLOAT_TOPS = [10, 22, 35, 48, 55, 65, 73, 80]
 const FLOAT_DURATIONS = [18, 24, 15, 30, 20, 12, 26, 22]
 const FLOAT_DELAYS = [0, 3, 7, 1, 5, 9, 2, 6]
 
+const DIFFICULTY_CONFIG: Record<Difficulty, { duration: number; silenceTimeout: number; penaltyMultiplier: number; hideFillerList: boolean; tip: string }> = {
+  easy:   { duration: 90,  silenceTimeout: 5000, penaltyMultiplier: 1, hideFillerList: false, tip: 'Take your time — pauses are better than fillers!' },
+  medium: { duration: 90,  silenceTimeout: 4000, penaltyMultiplier: 1, hideFillerList: true,  tip: 'No filler list this time — trust your instincts.' },
+  hard:   { duration: 120, silenceTimeout: 3000, penaltyMultiplier: 2, hideFillerList: true,  tip: 'Strict rules — every filler costs double!' },
+}
+
 export default function FillerNinja() {
   const hasScans = useRequireScan()
   const nav = useNavigate()
-  const [prompt] = useState(() => useSessionStore.getState().getUnusedPrompt('interview'))
   const [difficulty] = useState(() => useGameStore.getState().getDifficultyFor('filler-ninja'))
-  const gameDuration = difficulty === 'hard' ? 120 : 90
+  const config = DIFFICULTY_CONFIG[difficulty]
+  const [promptCategory] = useState(() => getPromptCategory(useSessionStore.getState().userGoal, 'interview'))
+  const [prompt] = useState(() => useSessionStore.getState().getUnusedPrompt(promptCategory))
+  const promptLabel = getPromptLabel(promptCategory)
+  const gameDuration = config.duration
   const [time, setTime] = useState(gameDuration)
   const [streak, setStreak] = useState(0)
   const [fillers, setFillers] = useState(0)
@@ -83,7 +94,7 @@ export default function FillerNinja() {
     if (!ready) return
     lastFillerTime.current = Date.now()
     const t = setInterval(() => {
-      const isSilent = Date.now() - lastSpeechTime.current > 3000
+      const isSilent = Date.now() - lastSpeechTime.current > config.silenceTimeout
       setSilent(isSilent)
 
       // Only tick timer and streak while speaking
@@ -136,16 +147,20 @@ export default function FillerNinja() {
         'Replace fillers with a silent pause to build your streak',
       ]}
       goal="Survive without filler words as long as possible"
-      tip="Silence sounds more confident than fillers!"
+      tip={config.tip}
       prompt={prompt}
-      promptLabel="Interview Question"
+      promptLabel={promptLabel}
       heroContent={
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-          {['um', 'uh', 'like', 'basically', 'you know'].map(w => (
-            <motion.div key={w} animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 2, repeat: Infinity, delay: Math.random() * 2 }}
-              style={{ background: 'rgba(194,143,231,0.1)', border: '1px solid rgba(194,143,231,0.2)', borderRadius: 12, padding: '6px 14px', fontSize: 13, fontWeight: 600, color: 'rgba(194,143,231,0.5)' }}>{w}</motion.div>
-          ))}
-        </div>
+        config.hideFillerList ? (
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'rgba(194,143,231,0.5)', fontStyle: 'italic' }}>Filler list hidden — stay sharp!</div>
+        ) : (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {['um', 'uh', 'like', 'basically', 'you know'].map(w => (
+              <motion.div key={w} animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 2, repeat: Infinity, delay: Math.random() * 2 }}
+                style={{ background: 'rgba(194,143,231,0.1)', border: '1px solid rgba(194,143,231,0.2)', borderRadius: 12, padding: '6px 14px', fontSize: 13, fontWeight: 600, color: 'rgba(194,143,231,0.5)' }}>{w}</motion.div>
+            ))}
+          </div>
+        )
       }
       onReady={() => setPhase('playing')}
     />
@@ -195,7 +210,7 @@ export default function FillerNinja() {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         <div style={{ width: '100%', maxWidth: 960, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 40px' }}>
           <div className="card" style={{ width: '100%', maxWidth: 600, textAlign: 'center', marginBottom: 12, padding: '20px 28px' }}>
-            <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 8 }}>Interview Question</div>
+            <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 8 }}>{promptLabel}</div>
             <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.4 }}>{prompt}</div>
           </div>
           <div style={{ maxWidth: 520, textAlign: 'center', fontSize: 16, fontWeight: 500, color: 'var(--muted)', lineHeight: 1.8, marginBottom: 12, minHeight: 60 }}>

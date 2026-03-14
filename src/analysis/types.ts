@@ -65,7 +65,9 @@ export interface ScanResult {
   timestamp: number
 }
 
-export type PromptCategory = 'casual' | 'professional' | 'interview'
+export type UserGoal = 'interview' | 'presentation' | 'casual' | 'reading'
+
+export type PromptCategory = 'casual' | 'professional' | 'interview' | 'reading'
 
 export interface BadgeDef {
   id: string

@@ -10,6 +10,14 @@ import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRequireScan } from '../hooks/useRequireScan'
 import { playGameComplete, playBadgeEarned } from '../../lib/sounds'
+import { getPromptCategory, getPromptLabel } from '../../lib/goalPromptMap'
+import type { Difficulty } from '../../analysis/types'
+
+const DIFFICULTY_CONFIG: Record<Difficulty, { duration: number; fidgetThreshold: number; tip: string }> = {
+  easy:   { duration: 45, fidgetThreshold: 0.6,  tip: 'Stand tall, open your arms, and gesture with purpose.' },
+  medium: { duration: 45, fidgetThreshold: 0.5,  tip: 'Tighter fidget detection — stay composed!' },
+  hard:   { duration: 60, fidgetThreshold: 0.35, tip: 'Ultra-strict — even small fidgets get flagged!' },
+}
 
 const glass: React.CSSProperties = {
   background: 'rgba(0,0,0,0.5)',
@@ -31,9 +39,12 @@ let calloutId = 0
 export default function StagePresence() {
   const hasScans = useRequireScan()
   const nav = useNavigate()
-  const [prompt] = useState(() => useSessionStore.getState().getUnusedPrompt('professional'))
   const [difficulty] = useState(() => useGameStore.getState().getDifficultyFor('statue-mode'))
-  const gameDuration = difficulty === 'hard' ? 60 : 45
+  const config = DIFFICULTY_CONFIG[difficulty]
+  const [promptCategory] = useState(() => getPromptCategory(useSessionStore.getState().userGoal, 'professional'))
+  const [prompt] = useState(() => useSessionStore.getState().getUnusedPrompt(promptCategory))
+  const promptLabel = getPromptLabel(promptCategory)
+  const gameDuration = config.duration
   const [time, setTime] = useState(gameDuration)
   const [ready, setReady] = useState(false)
   const [presenceScore, setPresenceScore] = useState(75)
@@ -173,9 +184,9 @@ export default function StagePresence() {
         'Use gestures in the power zone (between shoulders and hips)',
       ]}
       goal="Deliver your speech with commanding stage presence"
-      tip="Stand tall, open your arms, and gesture with purpose."
+      tip={config.tip}
       prompt={prompt}
-      promptLabel="Stage Presence Challenge"
+      promptLabel={promptLabel}
       heroContent={
         <svg width="120" height="160" viewBox="0 0 120 160" style={{ opacity: 0.6 }}>
           <ellipse cx={60} cy={25} rx={18} ry={20} fill="none" stroke="#c28fe7" strokeWidth={2} />
@@ -385,7 +396,7 @@ export default function StagePresence() {
         </div>
         {/* Prompt card */}
         <div style={{ ...glass, width: '100%', textAlign: 'center', padding: '14px 28px' }}>
-          <div style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: 0.5, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Stage Presence Challenge</div>
+          <div style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: 0.5, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>{promptLabel}</div>
           <div style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.4, color: 'rgba(255,255,255,0.9)' }}>{prompt}</div>
         </div>
       </div>

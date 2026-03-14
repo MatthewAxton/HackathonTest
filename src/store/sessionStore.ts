@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import type { PromptCategory, BadgeContext, GameType } from '../analysis/types'
+import type { PromptCategory, BadgeContext, GameType, UserGoal } from '../analysis/types'
 import BADGES from '../lib/badges'
 import PROMPTS from '../lib/prompts'
 
@@ -20,6 +20,7 @@ interface SessionState {
   totalScans: number
   totalGames: number
   gamesPlayed: Record<GameType, number>
+  userGoal: UserGoal | null
 
   markPromptUsed: (prompt: string) => void
   getUnusedPrompt: (category: PromptCategory) => string
@@ -28,6 +29,7 @@ interface SessionState {
   incrementStreak: () => void
   recordScan: () => void
   recordGame: (game: GameType) => void
+  setUserGoal: (goal: UserGoal) => void
 }
 
 const sessionStorageAdapter = createJSONStorage<SessionState>(() => localStorage)
@@ -54,6 +56,9 @@ export const useSessionStore = create<SessionState>()(
     'pitch-surfer': 0,
     'statue-mode': 0,
   },
+  userGoal: null,
+
+  setUserGoal: (goal) => set({ userGoal: goal }),
 
   markPromptUsed: (prompt) => {
     set((s) => {

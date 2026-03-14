@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Briefcase, Presentation, MessageCircle, BookOpen } from 'lucide-react'
 import { Mike, TalkingBubble } from '../components/Mike'
+import { useSessionStore } from '../../store/sessionStore'
+import type { UserGoal } from '../../analysis/types'
 
 const ease = [0.25, 0.46, 0.45, 0.94] as const
 
@@ -11,9 +14,18 @@ const slideVariants = {
   exit: { x: -60, opacity: 0 },
 }
 
+const GOALS: { value: UserGoal; label: string; icon: typeof Briefcase; description: string }[] = [
+  { value: 'interview', label: 'Job Interview', icon: Briefcase, description: 'Nail your next interview' },
+  { value: 'presentation', label: 'Presentation', icon: Presentation, description: 'Command the room' },
+  { value: 'casual', label: 'Casual Conversation', icon: MessageCircle, description: 'Speak with confidence' },
+  { value: 'reading', label: 'Reading Aloud', icon: BookOpen, description: 'Improve expression & clarity' },
+]
+
 export default function Onboarding() {
   const nav = useNavigate()
   const [step, setStep] = useState(0)
+  const [selectedGoal, setSelectedGoal] = useState<UserGoal | null>(null)
+  const setUserGoal = useSessionStore((s) => s.setUserGoal)
 
   return (
     <div style={{
@@ -23,7 +35,7 @@ export default function Onboarding() {
     }}>
       {/* Step dots */}
       <div style={{ position: 'absolute', top: 32, display: 'flex', gap: 8 }}>
-        {[0, 1].map((i) => (
+        {[0, 1, 2].map((i) => (
           <div
             key={i}
             style={{
@@ -68,10 +80,74 @@ export default function Onboarding() {
           </motion.div>
         )}
 
-        {/* Slide 2 — Camera Permission */}
+        {/* Slide 2 — Goal Selection */}
         {step === 1 && (
           <motion.div
             key="slide-1"
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.4, ease }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 440 }}
+          >
+            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text, rgba(255,255,255,0.9))', marginBottom: 6 }}>
+              What are you practicing for?
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--muted, rgba(255,255,255,0.4))', marginBottom: 24 }}>
+              This helps me tailor your prompts and coaching
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%' }}>
+              {GOALS.map(({ value, label, icon: Icon, description }) => {
+                const isSelected = selectedGoal === value
+                return (
+                  <motion.button
+                    key={value}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setSelectedGoal(value)}
+                    style={{
+                      background: isSelected ? 'rgba(194,143,231,0.15)' : 'rgba(255,255,255,0.06)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      border: `2px solid ${isSelected ? '#C28FE7' : 'rgba(255,255,255,0.08)'}`,
+                      borderRadius: 16,
+                      padding: '20px 16px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 8,
+                      transition: 'border-color 0.2s, background 0.2s',
+                    }}
+                  >
+                    <Icon size={28} style={{ color: isSelected ? '#C28FE7' : 'rgba(255,255,255,0.5)' }} />
+                    <div style={{ fontSize: 15, fontWeight: 700, color: isSelected ? '#C28FE7' : 'rgba(255,255,255,0.9)' }}>{label}</div>
+                    <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.4)', lineHeight: 1.3 }}>{description}</div>
+                  </motion.button>
+                )
+              })}
+            </div>
+
+            <button
+              className="btn-primary"
+              style={{ marginTop: 28, width: '100%', maxWidth: 320, opacity: selectedGoal ? 1 : 0.4, pointerEvents: selectedGoal ? 'auto' : 'none' }}
+              onClick={() => {
+                if (selectedGoal) {
+                  setUserGoal(selectedGoal)
+                  setStep(2)
+                }
+              }}
+            >
+              Next
+            </button>
+          </motion.div>
+        )}
+
+        {/* Slide 3 — Camera Permission */}
+        {step === 2 && (
+          <motion.div
+            key="slide-2"
             variants={slideVariants}
             initial="enter"
             animate="center"

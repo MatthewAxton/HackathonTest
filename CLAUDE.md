@@ -61,7 +61,12 @@ All implementation work follows `masterplan.md` in the project root. Reference i
 - Pitch analyzer chain: source → DynamicsCompressorNode → AnalyserNode
 - Transcriber uses `maxAlternatives: 3` with confidence-based filtering (rejects < 0.3)
 - Filler detector uses count-based tracking on interim results for fast detection
-- Camera games (EyeLock, StatueMode, RadarScan) use fullscreen camera with floating glass HUD
+- Camera games (EyeLock, StagePresence, RadarScan) use fullscreen camera with floating glass HUD
+- MediaPipe models use singleton pattern (cached after first download)
+- CameraFeed waits for video `loadeddata` before notifying consumers
+- gazeEngine emits biometric signals (blink, jaw tension, lip compression) alongside gaze
+- Composure scoring enriched with 6 biometric signals when available
+- Mascot speech bubbles use `TalkingBubble` component with per-character `playTalkBlip()` sound
 
 ## Build & Verify
 

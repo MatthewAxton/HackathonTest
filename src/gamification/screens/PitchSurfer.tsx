@@ -13,13 +13,24 @@ import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRequireScan } from '../hooks/useRequireScan'
 import { playGameComplete, playBadgeEarned } from '../../lib/sounds'
+import { getPromptCategory, getPromptLabel } from '../../lib/goalPromptMap'
+import type { Difficulty } from '../../analysis/types'
+
+const DIFFICULTY_CONFIG: Record<Difficulty, { duration: number; wipeoutThreshold: number; goodStdDev: number; tip: string }> = {
+  easy:   { duration: 30, wipeoutThreshold: 4, goodStdDev: 10, tip: 'Emphasise key words to create variation.' },
+  medium: { duration: 30, wipeoutThreshold: 3, goodStdDev: 15, tip: 'You need more variation to stay afloat!' },
+  hard:   { duration: 45, wipeoutThreshold: 2, goodStdDev: 25, tip: 'Extreme variation required — go big or wipe out!' },
+}
 
 export default function PitchSurfer() {
   const hasScans = useRequireScan()
   const nav = useNavigate()
-  const [prompt] = useState(() => useSessionStore.getState().getUnusedPrompt('professional'))
   const [difficulty] = useState(() => useGameStore.getState().getDifficultyFor('pitch-surfer'))
-  const gameDuration = difficulty === 'hard' ? 45 : 30
+  const config = DIFFICULTY_CONFIG[difficulty]
+  const [promptCategory] = useState(() => getPromptCategory(useSessionStore.getState().userGoal, 'professional'))
+  const [prompt] = useState(() => useSessionStore.getState().getUnusedPrompt(promptCategory))
+  const promptLabel = getPromptLabel(promptCategory)
+  const gameDuration = config.duration
   const [time, setTime] = useState(gameDuration)
   const [ready, setReady] = useState(false)
   const [pitchHistory, setPitchHistory] = useState<number[]>([])
@@ -66,9 +77,9 @@ export default function PitchSurfer() {
       if (buf.length < 5) { setVariation('low'); return }
       const mean = buf.reduce((a, b) => a + b, 0) / buf.length
       const stdDev = Math.sqrt(buf.reduce((sum, v) => sum + (v - mean) ** 2, 0) / buf.length)
-      if (stdDev > 30) { setVariation('high'); monotoneSeconds.current = 0; setWiping(false) }
-      else if (stdDev > 15) { setVariation('good'); monotoneSeconds.current = 0; setWiping(false) }
-      else { setVariation('low'); monotoneSeconds.current++; if (monotoneSeconds.current >= 3) setWiping(true) }
+      if (stdDev > config.goodStdDev * 2) { setVariation('high'); monotoneSeconds.current = 0; setWiping(false) }
+      else if (stdDev > config.goodStdDev) { setVariation('good'); monotoneSeconds.current = 0; setWiping(false) }
+      else { setVariation('low'); monotoneSeconds.current++; if (monotoneSeconds.current >= config.wipeoutThreshold) setWiping(true) }
     }, 1000)
     return () => clearInterval(id)
   }, [ready])
@@ -143,9 +154,9 @@ export default function PitchSurfer() {
         'A flat, monotone voice = flatline = wipeout!',
       ]}
       goal="Keep the wave dynamic — no flatlines!"
-      tip="Emphasise key words to create variation."
+      tip={config.tip}
       prompt={prompt}
-      promptLabel="Read With Expression"
+      promptLabel={promptLabel}
       heroContent={
         <svg width="280" height="60" viewBox="0 0 280 60">
           <motion.path
@@ -232,7 +243,7 @@ export default function PitchSurfer() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: variationColor, fontSize: 16, fontWeight: 700, marginBottom: 10 }}><VariationIcon size={18} /> {variation === 'high' ? 'HIGH VARIATION — Great!' : variation === 'good' ? 'GOOD VARIATION' : 'LOW VARIATION — Add expression!'}</div>
           <div className="card" style={{ width: '100%', maxWidth: 600, textAlign: 'center', padding: '18px 28px', marginBottom: 12 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 6 }}>Read With Expression</div>
+            <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 6 }}>{promptLabel}</div>
             <div style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.4 }}>{prompt}</div>
           </div>
           <AudioWave />

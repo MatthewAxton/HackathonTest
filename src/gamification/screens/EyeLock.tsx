@@ -11,8 +11,16 @@ import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRequireScan } from '../hooks/useRequireScan'
 import { playGameComplete, playBadgeEarned } from '../../lib/sounds'
+import { getPromptCategory, getPromptLabel } from '../../lib/goalPromptMap'
+import type { Difficulty } from '../../analysis/types'
 
 const QUALITY_COLORS = { good: '#58CC02', weak: '#F5A623', lost: '#FF4B4B' }
+
+const DIFFICULTY_CONFIG: Record<Difficulty, { duration: number; chargeRate: number; drainRate: number; tip: string }> = {
+  easy:   { duration: 45, chargeRate: 6, drainRate: 5,  tip: 'Relax your shoulders and breathe.' },
+  medium: { duration: 45, chargeRate: 5, drainRate: 8,  tip: 'The ring drains faster — stay locked in!' },
+  hard:   { duration: 60, chargeRate: 4, drainRate: 12, tip: 'Strict mode — looking away costs you fast!' },
+}
 
 const glassCard: React.CSSProperties = {
   background: 'rgba(0,0,0,0.5)',
@@ -26,9 +34,12 @@ const glassCard: React.CSSProperties = {
 export default function EyeLock() {
   const hasScans = useRequireScan()
   const nav = useNavigate()
-  const [prompt] = useState(() => useSessionStore.getState().getUnusedPrompt('interview'))
   const [difficulty] = useState(() => useGameStore.getState().getDifficultyFor('eye-lock'))
-  const gameDuration = difficulty === 'hard' ? 60 : 45
+  const config = DIFFICULTY_CONFIG[difficulty]
+  const [promptCategory] = useState(() => getPromptCategory(useSessionStore.getState().userGoal, 'interview'))
+  const [prompt] = useState(() => useSessionStore.getState().getUnusedPrompt(promptCategory))
+  const promptLabel = getPromptLabel(promptCategory)
+  const gameDuration = config.duration
   const [time, setTime] = useState(gameDuration)
   const [ready, setReady] = useState(false)
   const [charge, setCharge] = useState(0)
@@ -78,10 +89,10 @@ export default function EyeLock() {
             setBurstCount(b => b + 1)
             return 0 // reset after burst
           }
-          return Math.min(100, c + 5) // ~4 seconds to fill
+          return Math.min(100, c + config.chargeRate)
         })
       } else {
-        setCharge(c => Math.max(0, c - 8)) // drains faster than it fills
+        setCharge(c => Math.max(0, c - config.drainRate))
       }
     }, 200)
     return () => clearInterval(t)
@@ -129,9 +140,9 @@ export default function EyeLock() {
         'Looking away dims the screen — stay focused!',
       ]}
       goal="Keep your gaze locked for as much of the session as possible"
-      tip="Relax your shoulders and breathe."
+      tip={config.tip}
       prompt={prompt}
-      promptLabel="Behavioral Question"
+      promptLabel={promptLabel}
       heroContent={
         <div style={{ position: 'relative', width: 100, height: 100 }}>
           <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0, 0.3] }} transition={{ duration: 2, repeat: Infinity }} style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(88,204,2,0.3)' }} />
@@ -258,7 +269,7 @@ export default function EyeLock() {
       {/* Bottom-center: Prompt card */}
       <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 20, width: '90%', maxWidth: 600 }}>
         <div style={{ ...glassCard, textAlign: 'center', padding: '16px 24px' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Behavioral Question</div>
+          <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>{promptLabel}</div>
           <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.4, color: 'rgba(255,255,255,0.9)' }}>{prompt}</div>
         </div>
       </div>

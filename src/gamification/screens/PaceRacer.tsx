@@ -13,15 +13,26 @@ import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRequireScan } from '../hooks/useRequireScan'
 import { playGameComplete, playBadgeEarned } from '../../lib/sounds'
+import { getPromptCategory, getPromptLabel } from '../../lib/goalPromptMap'
+import type { Difficulty } from '../../analysis/types'
+
+const DIFFICULTY_CONFIG: Record<Difficulty, { duration: number; zoneMin: number; zoneMax: number; gearUpThreshold: number; tip: string }> = {
+  easy:   { duration: 60, zoneMin: 100, zoneMax: 180, gearUpThreshold: 4,  tip: 'Breathe between sentences to control pace.' },
+  medium: { duration: 60, zoneMin: 120, zoneMax: 160, gearUpThreshold: 10, tip: 'Narrower zone — precision pacing required.' },
+  hard:   { duration: 90, zoneMin: 130, zoneMax: 150, gearUpThreshold: 16, tip: 'Razor-thin zone — every word counts!' },
+}
 
 export default function PaceRacer() {
   const hasScans = useRequireScan()
   const nav = useNavigate()
-  const [prompt] = useState(() => useSessionStore.getState().getUnusedPrompt('casual'))
   const [difficulty] = useState(() => useGameStore.getState().getDifficultyFor('pace-racer'))
-  const gameDuration = difficulty === 'hard' ? 90 : 60
-  const zoneMin = difficulty === 'hard' ? 130 : difficulty === 'medium' ? 120 : 100
-  const zoneMax = difficulty === 'hard' ? 150 : difficulty === 'medium' ? 160 : 180
+  const config = DIFFICULTY_CONFIG[difficulty]
+  const [promptCategory] = useState(() => getPromptCategory(useSessionStore.getState().userGoal, 'casual'))
+  const [prompt] = useState(() => useSessionStore.getState().getUnusedPrompt(promptCategory))
+  const promptLabel = getPromptLabel(promptCategory)
+  const gameDuration = config.duration
+  const zoneMin = config.zoneMin
+  const zoneMax = config.zoneMax
   const [time, setTime] = useState(gameDuration)
   const [wpm, setWpm] = useState(0)
   const [timeInZone, setTimeInZone] = useState(0)
@@ -60,18 +71,22 @@ export default function PaceRacer() {
       if (reading.rolling >= zoneMin && reading.rolling <= zoneMax) {
         setTimeInZone(p => { timeInZoneRef.current = p + 1; return p + 1 })
       }
-      // Gear system: sustained in-zone = gear up
+      // Gear system: sustained in-zone = gear up (threshold scales with difficulty)
+      const g1 = config.gearUpThreshold
+      const g2 = g1 * 3
+      const g3 = g1 * 6
+      const g4 = g1 * 10
       if (reading.rolling >= zoneMin && reading.rolling <= zoneMax) {
         consecutiveInZone.current++
-        if (consecutiveInZone.current >= 40) setGear(4)      // ~20s at 500ms intervals
-        else if (consecutiveInZone.current >= 24) setGear(3)  // ~12s
-        else if (consecutiveInZone.current >= 12) setGear(2)  // ~6s
-        else if (consecutiveInZone.current >= 4) setGear(1)   // ~2s
+        if (consecutiveInZone.current >= g4) setGear(4)
+        else if (consecutiveInZone.current >= g3) setGear(3)
+        else if (consecutiveInZone.current >= g2) setGear(2)
+        else if (consecutiveInZone.current >= g1) setGear(1)
       } else {
         consecutiveInZone.current = Math.max(0, consecutiveInZone.current - 2) // downshift
-        if (consecutiveInZone.current < 4) setGear(0)
-        else if (consecutiveInZone.current < 12) setGear(1)
-        else if (consecutiveInZone.current < 24) setGear(2)
+        if (consecutiveInZone.current < g1) setGear(0)
+        else if (consecutiveInZone.current < g2) setGear(1)
+        else if (consecutiveInZone.current < g3) setGear(2)
         else setGear(3)
       }
     })
@@ -118,9 +133,9 @@ export default function PaceRacer() {
         'Too fast or too slow and the bar turns red',
       ]}
       goal={`Keep your speaking pace in the green zone for ${gameDuration} seconds`}
-      tip="Breathe between sentences to control pace."
+      tip={config.tip}
       prompt={prompt}
-      promptLabel="Freestyle"
+      promptLabel={promptLabel}
       heroContent={
         <div style={{ width: '100%', maxWidth: 300 }}>
           <div style={{ height: 12, background: 'rgba(255,255,255,0.08)', borderRadius: 6, overflow: 'hidden', position: 'relative' }}>
@@ -189,7 +204,7 @@ export default function PaceRacer() {
             <div style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, color: inZone ? 'var(--green)' : 'var(--red)', marginTop: 8 }}>{inZone ? `${zoneMin}–${zoneMax} WPM Zone` : silent ? 'Keep talking!' : wpm === 0 ? 'Start speaking...' : 'Outside zone!'}</div>
           </div>
           <div className="card" style={{ width: '100%', maxWidth: 600, textAlign: 'center', padding: '18px 28px', marginBottom: 10 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 6 }}>Freestyle</div>
+            <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 6 }}>{promptLabel}</div>
             <div style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.4 }}>{prompt}</div>
           </div>
           <AudioWave />

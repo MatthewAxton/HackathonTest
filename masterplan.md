@@ -163,6 +163,95 @@ Replaced fragile `document.querySelector('video')` with proper `onVideoRef` call
 
 ---
 
+## Sprint 10: Stage Presence + Enriched Composure + Bug Fixes [COMPLETE]
+
+> Evolved Statue Mode into Stage Presence game and enriched the Composure radar spoke with biometric signals.
+
+### 10.1 — Stage Presence game (evolved Statue Mode) [DONE]
+
+Renamed from "Statue Mode" to "Stage Presence" — from "don't move" to "move RIGHT." Rewards good body language, penalizes bad habits. `GameType` stays `'statue-mode'` for backward compatibility. Route unchanged.
+
+- **Pose detection**: Added to `poseTracker.ts` — shoulder level, upright alignment, openness, gesture quality, hip stability, plus bad habit booleans (armsCrossed, handsInPockets, faceTouching, figLeaf, handsBehindBack)
+- **Presence score**: Weighted composite (posture 25%, stability 20%, openness 20%, gesture quality 25%, habit avoidance 10%)
+- **New game screen** (`StagePresence.tsx`): Power zone overlay, animated callouts (green positive / red negative), presence streak counter with flame icon, sub-score bars
+- **Scoring**: `gameScorer.ts` uses presence score + streak bonus - habit penalty when available, falls back to old formula
+
+**Files:** `poseTracker.ts`, `StagePresence.tsx` (new), `gameScorer.ts`, `GameQueue.tsx`, `ScoreCard.tsx`, `DevMenu.tsx`, `App.tsx`
+
+### 10.2 — Enriched composure biometrics [DONE]
+
+Added real biometric signals to the Composure radar spoke:
+- **gazeEngine.ts**: Blink detection (debounced), jaw tension, lip compression from FaceLandmarker blendshapes
+- **RadarScan.tsx**: Collects blink count, jaw tension, lip compression, gaze stability, pitch jitter during scan
+- **radarScorer.ts**: 6-signal enriched composure formula (stillness 25%, blink 15%, jaw 15%, gaze 15%, lip 10%, vocal 20%) with backward-compatible fallback
+- **ScanRawData**: Added optional fields (blinkRate, jawTension, lipCompression, gazeStability, pitchJitter)
+
+### 10.3 — Eye tracking initialization fix [DONE]
+
+Root cause: CameraFeed's `<video>` element only existed when `state === 'active'`, but `srcObject` and `onVideoRef` were called before state changed. `videoRef.current` was always null.
+
+Fixes applied:
+- **CameraFeed.tsx**: Separated stream acquisition from video attachment. State goes to 'active' first (mounting `<video>`), then `useEffect` attaches `srcObject` and waits for `loadeddata`
+- **Singleton init**: `initGazeEngine()` and `initPoseTracker()` now cache model instances, preventing re-download on re-navigation
+- **Parallel init**: RadarScan loads gaze + pose models via `Promise.all` instead of sequentially
+- **Video readiness guard**: `processFrame()` skips if `video.readyState < 2`
+- **Double-start fix**: EyeLock uses `trackingStarted` ref to prevent race condition
+
+### 10.4 — Mascot talk blip sound [DONE]
+
+Added Animal Crossing-style `playTalkBlip()` per-character typewriter effect to all mascot speech bubbles:
+- Exported `TalkingBubble` from `Mike.tsx`
+- Applied to: Homepage splash bubble, Homepage goal bubble, Onboarding (both slides), Countdown (intro + countdown), GameQueue mascot tip popup
+- Previously only worked in RadarResults
+
+---
+
+## Sprint 11: Game Variations, Difficulty Scaling & Onboarding Customization [COMPLETE]
+
+> Richer gameplay, onboarding-driven customization, and meaningful difficulty scaling beyond just timer changes.
+
+### 11.1 — Types + Session Store [DONE]
+
+- Added `UserGoal` type (`interview | presentation | casual | reading`) to `types.ts`
+- Added `reading` to `PromptCategory` union
+- Added `userGoal` state + `setUserGoal` action to `sessionStore.ts` (persisted via localStorage)
+
+### 11.2 — Onboarding Goal Selection [DONE]
+
+New slide between intro and camera: "What are you practicing for?" with 4 glass cards in 2×2 grid (Job Interview, Presentation, Casual Conversation, Reading Aloud). Step dots updated to [0,1,2]. Goal persists across refresh via sessionStore.
+
+**Files:** `Onboarding.tsx`
+
+### 11.3 — More Prompts [DONE]
+
+Doubled each category (5→10 prompts each) and added `reading` category with 10 expressive passages. Total: 40 prompts (was 15).
+
+**Files:** `prompts.ts`
+
+### 11.4 — Goal-Driven Prompt Selection [DONE]
+
+Created `goalPromptMap.ts` helper. All 5 game screens now check `userGoal` → map to prompt category → fallback to game default. Dynamic `promptLabel` in both GameIntro and playing-phase UI.
+
+Map: interview→interview, presentation→professional, casual→casual, reading→reading
+
+**Files:** New `src/lib/goalPromptMap.ts`, all 5 game screens
+
+### 11.5 — Richer Difficulty Configs [DONE]
+
+Each game gets a `DIFFICULTY_CONFIG` object with per-difficulty gameplay parameters (not just timer):
+
+- **FillerNinja**: silence timeout (5s/4s/3s), penalty multiplier (1x/1x/2x), filler list hidden on medium+hard
+- **EyeLock**: charge rate (6/5/4 per tick), drain rate (5/8/12 per tick)
+- **PaceRacer**: WPM zone (100–180/120–160/130–150), gear-up threshold (4/10/16 consecutive)
+- **PitchSurfer**: wipeout threshold (4s/3s/2s monotone), good stdDev (10/15/25)
+- **StagePresence**: fidget threshold (0.6/0.5/0.35)
+
+### 11.6 — Difficulty-Aware GameIntro Tips [DONE]
+
+Easy tips are encouraging ("Take your time"), hard tips are challenge-oriented ("Strict rules — every mistake costs more!"). Pulled from `DIFFICULTY_CONFIG.tip`.
+
+---
+
 ## Key Architecture
 
 | Area | Files |
