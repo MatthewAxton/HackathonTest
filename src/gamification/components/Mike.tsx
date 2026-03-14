@@ -6,7 +6,7 @@ interface MikeProps { state?: 'idle' | 'talking'; size?: number }
 export function Mike({ state = 'idle', size = 80 }: MikeProps) {
   const src = state === 'talking' ? '/talking.gif' : '/idle.gif'
   return (
-    <div style={{ width: size + 16, height: size + 16, borderRadius: '50%', background: 'var(--surface)', padding: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 24px rgba(194,143,231,0.15)' }}>
+    <div style={{ width: size + 16, height: size + 16, borderRadius: '50%', background: 'var(--surface)', padding: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 24px rgba(0,0,0,0.3)' }}>
       <img src={src} width={size} height={size} style={{ objectFit: 'contain' }} alt="Mike" />
     </div>
   )
@@ -60,14 +60,14 @@ export function MikeWithBubble({ text, size = 80, delay = 1.0 }: MikeWithBubbleP
               transition={{ duration: 0.5, ease: smoothEaseOut, delay: 0.2 }}
               style={{ transformOrigin: 'top center' }}
             >
-              <div style={{ width: 0, height: 0, borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderBottom: '8px solid var(--border)', margin: '0 auto' }} />
-              <div style={{ width: 0, height: 0, borderLeft: '7px solid transparent', borderRight: '7px solid transparent', borderBottom: '7px solid white', margin: '-7px auto 0' }} />
+              <div style={{ width: 0, height: 0, borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderBottom: '8px solid rgba(255,255,255,0.08)', margin: '0 auto' }} />
+              <div style={{ width: 0, height: 0, borderLeft: '7px solid transparent', borderRight: '7px solid transparent', borderBottom: '7px solid rgba(255,255,255,0.06)', margin: '-7px auto 0' }} />
             </motion.div>
             <motion.div
               initial={{ opacity: 0, scale: 0.6, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.8, ease: smoothEaseOut, delay: 0.4 }}
-              style={{ transformOrigin: 'top center', background: 'white', border: '2px solid var(--border)', borderRadius: 16, padding: '14px 22px', fontSize: 16, fontWeight: 600, color: 'var(--text)', maxWidth: 360, textAlign: 'center', lineHeight: 1.4, boxShadow: '0 2px 8px rgba(194,143,231,0.1)' }}
+              style={{ transformOrigin: 'top center', background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '2px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '14px 22px', fontSize: 16, fontWeight: 600, color: 'var(--text)', maxWidth: 360, textAlign: 'center', lineHeight: 1.4, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
               dangerouslySetInnerHTML={{ __html: text }}
             />
           </motion.div>

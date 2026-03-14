@@ -38,8 +38,8 @@ export function DevMenu() {
       {open && (
         <div style={{
           position: 'fixed', bottom: 68, left: 16, width: 220,
-          background: 'white', border: '1px solid var(--border)', borderRadius: 16,
-          padding: 8, zIndex: 1000, boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+          background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16,
+          padding: 8, zIndex: 1000, boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
           maxHeight: '70vh', overflowY: 'auto',
         }}>
           <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', padding: '8px 12px' }}>Dev Navigation</div>

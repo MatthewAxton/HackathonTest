@@ -107,9 +107,9 @@ export default function Countdown() {
                       transition={{ duration: 0.35, ease }}
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: -2 }}
                     >
-                      <div style={{ width: 0, height: 0, borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderBottom: '8px solid var(--border)' }} />
-                      <div style={{ width: 0, height: 0, borderLeft: '7px solid transparent', borderRight: '7px solid transparent', borderBottom: '7px solid white', marginTop: -7 }} />
-                      <div style={{ background: 'white', border: '2px solid var(--border)', borderRadius: 16, padding: '14px 22px', fontSize: 16, fontWeight: 600, maxWidth: 360, textAlign: 'center', lineHeight: 1.4, boxShadow: '0 2px 8px rgba(194,143,231,0.1)' }}>
+                      <div style={{ width: 0, height: 0, borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderBottom: '8px solid rgba(255,255,255,0.08)' }} />
+                      <div style={{ width: 0, height: 0, borderLeft: '7px solid transparent', borderRight: '7px solid transparent', borderBottom: '7px solid rgba(255,255,255,0.06)', marginTop: -7 }} />
+                      <div style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '2px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '14px 22px', fontSize: 16, fontWeight: 600, maxWidth: 360, textAlign: 'center', lineHeight: 1.4, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
                         {bubbleText}
                       </div>
                     </motion.div>
@@ -217,9 +217,9 @@ export default function Countdown() {
                       transition={{ duration: 0.5, ease }}
                       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: -2 }}
                     >
-                      <div style={{ width: 0, height: 0, borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderBottom: '8px solid var(--border)' }} />
-                      <div style={{ width: 0, height: 0, borderLeft: '7px solid transparent', borderRight: '7px solid transparent', borderBottom: '7px solid white', marginTop: -7 }} />
-                      <div style={{ background: 'white', border: '2px solid var(--border)', borderRadius: 16, padding: '12px 28px', fontSize: 36, fontWeight: 900, color: 'var(--purple)', textAlign: 'center', boxShadow: '0 2px 8px rgba(194,143,231,0.1)' }}>
+                      <div style={{ width: 0, height: 0, borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderBottom: '8px solid rgba(255,255,255,0.08)' }} />
+                      <div style={{ width: 0, height: 0, borderLeft: '7px solid transparent', borderRight: '7px solid transparent', borderBottom: '7px solid rgba(255,255,255,0.06)', marginTop: -7 }} />
+                      <div style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '2px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '12px 28px', fontSize: 36, fontWeight: 900, color: 'var(--purple)', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
                         {bubbleText}
                       </div>
                     </motion.div>

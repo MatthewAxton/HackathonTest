@@ -130,7 +130,7 @@ export default function Progress() {
                     whileHover={{ scale: 1.05 }}
                     style={{
                       textAlign: 'center', padding: 12, borderRadius: 16,
-                      background: earned ? 'var(--surface)' : 'rgba(0,0,0,0.02)',
+                      background: earned ? 'var(--surface)' : 'rgba(255,255,255,0.02)',
                       border: earned ? '1px solid var(--purple)' : '1px solid var(--border)',
                       opacity: earned ? 1 : 0.4,
                       filter: earned ? 'none' : 'grayscale(1)',

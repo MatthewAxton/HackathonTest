@@ -85,7 +85,7 @@ export function CameraFeed({ overlay, mirror = true, borderRadius = 20, style, w
   // Placeholder states
   const placeholderStyle: React.CSSProperties = {
     ...containerStyle,
-    background: 'white',
+    background: 'rgba(255,255,255,0.04)',
     border: '2px dashed var(--purple, #c28fe7)',
     display: 'flex', flexDirection: 'column',
     alignItems: 'center', justifyContent: 'center', gap: 12,

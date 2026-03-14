@@ -33,7 +33,7 @@ export function GraceCountdown({ onReady, prompt, promptLabel }: GraceCountdownP
           transition={{ duration: 0.5, ease }}
           style={{
             position: 'absolute', inset: 0, zIndex: 100,
-            background: 'white',
+            background: '#050508',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             gap: 24,
           }}
@@ -47,10 +47,10 @@ export function GraceCountdown({ onReady, prompt, promptLabel }: GraceCountdownP
               transition={{ duration: 0.35, ease }}
               style={{
                 width: 110, height: 110, borderRadius: '50%',
-                background: count > 0 ? 'white' : 'var(--purple)',
+                background: count > 0 ? 'rgba(255,255,255,0.06)' : 'var(--purple)',
                 border: '4px solid var(--purple)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 6px 28px rgba(194,143,231,0.2)',
+                boxShadow: '0 6px 28px rgba(0,0,0,0.4)',
               }}
             >
               <span style={{

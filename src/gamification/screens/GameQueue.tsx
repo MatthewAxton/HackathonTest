@@ -51,7 +51,7 @@ export default function GameQueue() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-              style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(194,143,231,0.12)', borderRadius: 24, padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 8px 32px rgba(194,143,231,0.1)' }}
+              style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
             >
               <MikeWithBubble text={`Your biggest opportunity: <strong style='color:var(--purple)'>${weakestName}</strong>. Let's fix that first.`} size={90} delay={0.6} />
             </motion.div>
@@ -60,7 +60,7 @@ export default function GameQueue() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-              style={{ background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(194,143,231,0.12)', borderRadius: 24, padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, boxShadow: '0 8px 32px rgba(194,143,231,0.1)' }}
+              style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
             >
               <RadarChart
                 scores={{ clarity: scores.clarity, confidence: scores.confidence, pacing: scores.pacing, expression: scores.expression, composure: scores.composure }}
@@ -77,7 +77,7 @@ export default function GameQueue() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-            style={{ flex: 1, background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(194,143,231,0.12)', borderRadius: 24, padding: '28px 28px', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 32px rgba(194,143,231,0.1)' }}
+            style={{ flex: 1, background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '28px 28px', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
           >
             <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Game Dashboard</div>
             <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 16 }}>Recommended For You</div>
@@ -89,18 +89,18 @@ export default function GameQueue() {
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.3 + i * 0.12, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
                   onClick={() => nav(g.path)}
-                  whileHover={{ y: -3, boxShadow: '0 12px 32px rgba(194,143,231,0.18)' }}
+                  whileHover={{ y: -3, boxShadow: '0 12px 32px rgba(0,0,0,0.4)' }}
                   whileTap={{ y: 1, boxShadow: 'none' }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 16,
-                    background: g.priority ? 'var(--surface)' : 'white',
+                    background: g.priority ? 'var(--surface)' : 'rgba(255,255,255,0.04)',
                     border: '1px solid var(--border)',
                     borderBottom: g.priority ? '4px solid #9B6BC2' : '4px solid var(--border)',
                     borderLeft: g.priority ? '5px solid var(--purple)' : 'none',
                     borderRadius: 20, padding: '20px 24px',
                     cursor: 'pointer', position: 'relative',
                     transition: 'box-shadow 0.2s',
-                    boxShadow: '0 4px 20px rgba(194,143,231,0.08)',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
                   }}
                 >
                   {g.priority && <div style={{ position: 'absolute', top: -8, right: 14, background: 'var(--purple)', color: 'white', fontSize: 10, fontWeight: 800, padding: '3px 12px', borderRadius: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Start Here</div>}

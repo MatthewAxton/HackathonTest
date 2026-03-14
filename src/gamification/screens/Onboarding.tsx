@@ -35,7 +35,7 @@ export default function Onboarding() {
     <div style={{
       height: '100vh', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
-      background: 'white', padding: '40px 24px', position: 'relative',
+      padding: '40px 24px', position: 'relative',
     }}>
       {/* Step dots */}
       <div style={{ position: 'absolute', top: 32, display: 'flex', gap: 8 }}>
@@ -70,7 +70,7 @@ export default function Onboarding() {
               <Mike state="talking" size={120} />
             </motion.div>
 
-            <div style={{ marginTop: 24, background: 'white', border: '2px solid var(--border, #E5D5F7)', borderRadius: 20, padding: '20px 28px', fontSize: 17, fontWeight: 600, lineHeight: 1.6, color: 'var(--text, #1A1A1A)', boxShadow: '0 4px 20px rgba(194,143,231,0.1)' }}>
+            <div style={{ marginTop: 24, background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '2px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '20px 28px', fontSize: 17, fontWeight: 600, lineHeight: 1.6, color: 'var(--text, rgba(255,255,255,0.9))', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
               Hey! I'm <strong style={{ color: 'var(--purple, #C28FE7)' }}>Mike</strong>, your speech coach. I'm going to listen to you speak for 30 seconds and figure out how to help you improve.
             </div>
 
@@ -108,7 +108,7 @@ export default function Onboarding() {
                     onClick={() => handleSelectPrompt(p.prompt)}
                     style={{
                       width: '100%', textAlign: 'left', padding: '16px 20px', borderRadius: 16, cursor: 'pointer',
-                      background: isSelected ? 'rgba(194,143,231,0.08)' : 'white',
+                      background: isSelected ? 'rgba(194,143,231,0.08)' : 'rgba(255,255,255,0.04)',
                       border: isSelected ? '2px solid var(--purple, #C28FE7)' : '1px solid var(--border, #E5D5F7)',
                       fontFamily: 'Nunito, sans-serif',
                       transition: 'all 0.2s',
@@ -149,7 +149,7 @@ export default function Onboarding() {
               <Mike state="talking" size={100} />
             </motion.div>
 
-            <div style={{ marginTop: 20, background: 'white', border: '2px solid var(--border, #E5D5F7)', borderRadius: 20, padding: '18px 24px', fontSize: 18, fontWeight: 700, lineHeight: 1.5, color: 'var(--text, #1A1A1A)', boxShadow: '0 4px 20px rgba(194,143,231,0.1)' }}>
+            <div style={{ marginTop: 20, background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '2px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '18px 24px', fontSize: 18, fontWeight: 700, lineHeight: 1.5, color: 'var(--text, rgba(255,255,255,0.9))', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
               I need to <strong style={{ color: 'var(--purple, #C28FE7)' }}>see and hear</strong> you. Ready?
             </div>
 
