@@ -170,7 +170,7 @@ export default function FillerNinja() {
       </div>
 
       <TopBanner backTo="/queue" title="Filler Ninja"
-        center={<><span style={{ background: 'rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: 12, fontSize: 15, fontWeight: 800 }}>0:{time.toString().padStart(2, '0')}</span><div style={{ width: 160, height: 8, background: 'rgba(255,255,255,0.2)', borderRadius: 4, overflow: 'hidden' }}><motion.div animate={{ width: `${((gameDuration-time)/gameDuration)*100}%` }} style={{ height: '100%', background: 'var(--purple)', borderRadius: 4 }} /></div></>}
+        center={<><span style={{ background: silent ? 'rgba(252,211,77,0.2)' : 'rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: 12, fontSize: 15, fontWeight: 800, transition: 'background 0.3s' }}>0:{time.toString().padStart(2, '0')}{silent && <span style={{ fontSize: 10, fontWeight: 700, color: '#FCD34D', marginLeft: 6 }}>PAUSED</span>}</span><div style={{ width: 160, height: 8, background: 'rgba(255,255,255,0.2)', borderRadius: 4, overflow: 'hidden' }}><motion.div animate={{ width: `${((gameDuration-time)/gameDuration)*100}%` }} style={{ height: '100%', background: silent ? '#FCD34D' : 'var(--purple)', borderRadius: 4, transition: 'background 0.3s' }} /></div></>}
         right={<><span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700 }}><Zap size={14} /> {fillers}</span><span style={{ background: `${difficulty === 'hard' ? '#FF4B4B' : difficulty === 'medium' ? '#FCD34D' : '#58CC02'}30`, color: difficulty === 'hard' ? '#FF4B4B' : difficulty === 'medium' ? '#FCD34D' : '#58CC02', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 8, textTransform: 'uppercase' }}>{difficulty}</span></>} />
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         <div style={{ width: '100%', maxWidth: 960, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 40px' }}>
@@ -213,8 +213,8 @@ export default function FillerNinja() {
                 style={{ position: 'absolute', top: -10, width: 80, height: 80, borderRadius: '50%', border: '2px solid rgba(194,143,231,0.3)', pointerEvents: 'none' }}
               />
             )}
-            <motion.div key={streak} initial={{ scale: 1.3, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 15 }} style={{ fontSize: 52, fontWeight: 800, lineHeight: 1, background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', textShadow: streak > 10 ? '0 0 20px rgba(194,143,231,0.5)' : 'none' }}>{streak}</motion.div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)' }}>seconds filler-free</div>
+            <motion.div key={streak} initial={{ scale: 1.3, opacity: 0 }} animate={{ scale: 1, opacity: silent ? 0.4 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 15 }} style={{ fontSize: 52, fontWeight: 800, lineHeight: 1, background: silent ? 'linear-gradient(135deg, #FCD34D, #F59E0B)' : 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', textShadow: streak > 10 && !silent ? '0 0 20px rgba(194,143,231,0.5)' : 'none' }}>{streak}</motion.div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: silent ? '#FCD34D' : 'var(--muted)' }}>{silent ? 'paused — speak to continue' : 'seconds filler-free'}</div>
 
             {/* Combo tier */}
             {comboTier && (
