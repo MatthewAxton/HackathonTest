@@ -45,18 +45,18 @@ export default function GameQueue() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
       <TopBanner title={<>Speech<span style={{ color: 'var(--purple)' }}>MAX</span></>} showBack={false} right={<span style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: 10, fontSize: 13, fontWeight: 700 }}><Flame size={14} /> {streakDays || 1} Day Streak</span>} />
 
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '0 32px' }}>
-        <div style={{ display: 'flex', gap: 24, width: '100%', maxWidth: 1200, alignItems: 'stretch' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '0 24px' }}>
+        <div style={{ display: 'flex', gap: 28, width: '100%', maxWidth: 1400, alignItems: 'stretch' }}>
 
           {/* LEFT COLUMN — Mike + Score */}
-          <div style={{ width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ width: 360, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
               style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
             >
-              <MikeWithBubble text={`Your biggest opportunity: <strong style='color:var(--purple)'>${weakestName}</strong>. Let's fix that first.`} size={90} delay={0.6} />
+              <MikeWithBubble text={`Your biggest opportunity: <strong style='color:var(--purple)'>${weakestName}</strong>. Let's fix that first.`} size={100} delay={0.6} />
             </motion.div>
 
             <motion.div
@@ -67,10 +67,10 @@ export default function GameQueue() {
             >
               <RadarChart
                 scores={{ clarity: scores.clarity, confidence: scores.confidence, pacing: scores.pacing, expression: scores.expression, composure: scores.composure }}
-                size={200}
+                size={240}
                 animated={false}
               />
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.5 }} style={{ fontSize: 40, fontWeight: 800, lineHeight: 1, marginTop: 4, background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{Math.round(scores.overall)}</motion.div>
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.5 }} style={{ fontSize: 48, fontWeight: 800, lineHeight: 1, marginTop: 6, background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{Math.round(scores.overall)}</motion.div>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)', marginTop: 2 }}>Your Speech<span style={{ color: 'var(--purple)' }}>MAX</span> Score</div>
             </motion.div>
           </div>
@@ -80,12 +80,12 @@ export default function GameQueue() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-            style={{ flex: 1, background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '28px 28px', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
+            style={{ flex: 1, background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '32px 32px', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
           >
-            <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Game Dashboard</div>
-            <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 16 }}>Recommended For You</div>
+            <div style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>Game Dashboard</div>
+            <div style={{ fontSize: 14, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 18 }}>Recommended For You</div>
 
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, justifyContent: 'center' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, justifyContent: 'center' }}>
               {games.map((g, i) => (
                 <motion.div key={g.name}
                   initial={{ x: 30, opacity: 0 }}
@@ -100,22 +100,22 @@ export default function GameQueue() {
                     border: '1px solid var(--border)',
                     borderBottom: g.priority ? '4px solid #9B6BC2' : '4px solid var(--border)',
                     borderLeft: g.priority ? '5px solid var(--purple)' : 'none',
-                    borderRadius: 20, padding: '20px 24px',
+                    borderRadius: 20, padding: '22px 28px',
                     cursor: 'pointer', position: 'relative',
                     transition: 'box-shadow 0.2s',
                     boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
                   }}
                 >
                   {g.priority && <div style={{ position: 'absolute', top: -8, right: 14, background: 'var(--purple)', color: 'white', fontSize: 10, fontWeight: 800, padding: '3px 12px', borderRadius: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Start Here</div>}
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--purple)', flexShrink: 0 }}>
-                    <g.icon size={20} />
+                  <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--purple)', flexShrink: 0 }}>
+                    <g.icon size={24} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 17, fontWeight: 700 }}>{g.name}</div>
-                    <div style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600 }}>{g.axis} · {g.time}</div>
+                    <div style={{ fontSize: 19, fontWeight: 700 }}>{g.name}</div>
+                    <div style={{ fontSize: 15, color: 'var(--muted)', fontWeight: 600 }}>{g.axis} · {g.time}</div>
                   </div>
-                  <div style={{ width: 110, textAlign: 'right' }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>{g.score} / 100</div>
+                  <div style={{ width: 120, textAlign: 'right' }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{g.score} / 100</div>
                     <div className="progress-track"><div className="progress-fill" style={{ width: `${g.score}%` }} /></div>
                   </div>
                 </motion.div>
