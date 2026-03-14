@@ -6,7 +6,7 @@ import { TopBanner, BottomBanner } from '../components/Banner'
 import { MikeWithBubble } from '../components/Mike'
 import { AudioWave } from '../components/AudioWave'
 import { CameraFeed } from '../components/CameraFeed'
-import { startTranscription, stopTranscription, onTranscript } from '../../analysis/speech/transcriber'
+import { startTranscription, stopTranscription, onTranscript, getTranscriberStatus } from '../../analysis/speech/transcriber'
 import { startFillerDetection, stopFillerDetection, getFillerCount } from '../../analysis/speech/fillerDetector'
 import { startWpmTracking, stopWpmTracking, getRollingWpm, getWpmStdDev } from '../../analysis/speech/wpmTracker'
 import { startAudioAnalysis, stopAudioAnalysis, onAudioFrame } from '../../analysis/audio/pitchAnalyzer'
@@ -28,6 +28,7 @@ export default function RadarScan() {
   const [time, setTime] = useState(30)
   const [wpm, setWpm] = useState(0)
   const [fillers, setFillers] = useState(0)
+  const [transcriptStatus, setTranscriptStatus] = useState('')
   const micStarted = useRef(false)
 
   // Sensor accumulators
@@ -99,6 +100,8 @@ export default function RadarScan() {
     const wpmInterval = setInterval(() => {
       setWpm(getRollingWpm())
       setFillers(getFillerCount())
+      const status = getTranscriberStatus()
+      setTranscriptStatus(status.error ? `Error: ${status.error}` : status.active ? 'Listening...' : 'Inactive')
     }, 500)
     return () => clearInterval(wpmInterval)
   }, [])
@@ -216,6 +219,7 @@ export default function RadarScan() {
           <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
             <span style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '6px 14px', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Activity size={14} color="var(--purple)" /> <span style={{ color: 'var(--purple)', fontWeight: 700 }}>{wpm} WPM</span></span>
             <span style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '6px 14px', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Eye size={14} color="var(--purple)" /> <span style={{ color: 'var(--purple)', fontWeight: 700 }}>{fillers} fillers</span></span>
+            <span style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '6px 14px', fontSize: 11, fontWeight: 600, color: transcriptStatus.startsWith('Error') ? 'var(--red)' : 'var(--muted)' }}>{transcriptStatus}</span>
           </div>
         </div>
       </div>

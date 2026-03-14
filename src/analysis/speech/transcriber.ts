@@ -20,6 +20,7 @@ declare global {
 let recognition: SpeechRecognition | null = null
 let active = false
 let cumulativeWordCount = 0
+let lastError: string | null = null
 const subscribers = new Set<TranscriptCallback>()
 
 function createRecognition(): SpeechRecognition {
@@ -55,8 +56,9 @@ function createRecognition(): SpeechRecognition {
 
   rec.onerror = (event) => {
     console.warn('[SpeechMAX] SpeechRecognition error:', event.error)
-    // Auto-restart on recoverable errors
-    if (active && (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'network' || event.error === 'aborted')) {
+    lastError = event.error
+    // Auto-restart on all recoverable errors
+    if (active) {
       try { rec.stop() } catch { /* ignore */ }
       setTimeout(() => { if (active) startInternal() }, 300)
     }
@@ -105,4 +107,8 @@ export function onTranscript(callback: TranscriptCallback): () => void {
 
 export function isTranscribing(): boolean {
   return active
+}
+
+export function getTranscriberStatus(): { active: boolean; error: string | null } {
+  return { active, error: lastError }
 }
