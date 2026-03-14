@@ -1,71 +1,68 @@
 /**
  * E3.R3 — WPM Tracker
- * Tracks words-per-minute with session average and rolling 5-second window.
+ * Real-time WPM from interim speech results. No buffering delay.
  */
 import type { TranscriptEvent } from '../types'
 import { onTranscript } from './transcriber'
 
 type WpmCallback = (wpm: { session: number; rolling: number }) => void
 
-interface WordEntry {
-  wordCount: number
-  timestamp: number
-}
-
-const ROLLING_WINDOW_MS = 6000
 const subscribers = new Set<WpmCallback>()
 let startTime = 0
-let totalWords = 0
-let pendingInterimWords = 0
-let smoothedWpm = 0
-const buffer: WordEntry[] = []
+let totalFinalWords = 0
+let segmentStart = 0
+let lastDisplayWpm = 0
+let lastSpeechTime = 0
 const wpmSamples: number[] = []
 let intervalId: ReturnType<typeof setInterval> | null = null
 let unsubTranscript: (() => void) | null = null
 
 function processTranscript(event: TranscriptEvent) {
   if (startTime === 0) startTime = Date.now()
+  lastSpeechTime = Date.now()
 
   const words = event.text.split(/\s+/).filter(Boolean).length
 
   if (event.isFinal) {
-    totalWords += words
-    pendingInterimWords = 0
-    buffer.push({ wordCount: words, timestamp: Date.now() })
+    totalFinalWords += words
+    segmentStart = 0 // reset for next utterance
   } else {
-    // Track interim words so rolling WPM updates immediately while speaking
-    pendingInterimWords = words
-  }
-}
-
-function pruneBuffer() {
-  const cutoff = Date.now() - ROLLING_WINDOW_MS
-  while (buffer.length > 0 && buffer[0].timestamp < cutoff) {
-    buffer.shift()
+    // Interim result: compute instant WPM from this utterance
+    if (segmentStart === 0) segmentStart = Date.now()
+    const elapsed = (Date.now() - segmentStart) / 1000
+    if (elapsed > 0.3 && words > 0) {
+      lastDisplayWpm = Math.round((words / elapsed) * 60)
+    } else if (words > 0) {
+      // Very start of utterance — estimate from word count
+      lastDisplayWpm = Math.max(lastDisplayWpm, words * 40)
+    }
   }
 }
 
 export function getSessionWpm(): number {
-  if (startTime === 0 || totalWords === 0) return 0
+  if (startTime === 0 || totalFinalWords === 0) return 0
   const elapsedSeconds = (Date.now() - startTime) / 1000
   if (elapsedSeconds < 1) return 0
-  return Math.round((totalWords / elapsedSeconds) * 60)
+  return Math.round((totalFinalWords / elapsedSeconds) * 60)
 }
 
 export function getRollingWpm(): number {
-  pruneBuffer()
-  const wordsInWindow = buffer.reduce((sum, e) => sum + e.wordCount, 0) + pendingInterimWords
-  // words in 6 seconds × 10 = words per minute
-  return Math.round(wordsInWindow * 10)
+  // If speaking recently, show live WPM
+  // If silent for 4+ seconds, decay toward 0
+  const silenceMs = Date.now() - lastSpeechTime
+  if (silenceMs < 2000) return lastDisplayWpm
+  if (silenceMs < 6000) {
+    // Gentle decay
+    const decay = 1 - (silenceMs - 2000) / 4000
+    return Math.round(lastDisplayWpm * decay)
+  }
+  return 0
 }
 
 function emitReading() {
-  const raw = getRollingWpm()
-  // Smooth: ease toward target (fast rise, slow decay)
-  const alpha = raw > smoothedWpm ? 0.5 : 0.2
-  smoothedWpm = Math.round(alpha * raw + (1 - alpha) * smoothedWpm)
-  const reading = { session: getSessionWpm(), rolling: smoothedWpm }
-  wpmSamples.push(smoothedWpm)
+  const rolling = getRollingWpm()
+  const reading = { session: getSessionWpm(), rolling }
+  wpmSamples.push(rolling)
   subscribers.forEach((cb) => cb(reading))
 }
 
@@ -78,13 +75,13 @@ export function getWpmStdDev(): number {
 
 export function startWpmTracking(): void {
   startTime = 0
-  totalWords = 0
-  pendingInterimWords = 0
-  smoothedWpm = 0
-  buffer.length = 0
+  totalFinalWords = 0
+  segmentStart = 0
+  lastDisplayWpm = 0
+  lastSpeechTime = 0
   wpmSamples.length = 0
   unsubTranscript = onTranscript(processTranscript)
-  intervalId = setInterval(emitReading, 500)
+  intervalId = setInterval(emitReading, 300)
 }
 
 export function stopWpmTracking(): void {
