@@ -66,6 +66,7 @@ let faceLandmarker: FaceLandmarker | null = null
 let rafId = 0
 let active = false
 let smoothedConfidence = 0.5   // Start at neutral
+let frameCount = 0
 const subscribers = new Set<GazeCallback>()
 
 // ─── Init ────────────────────────────────────────────────────────────────────
@@ -188,6 +189,12 @@ function computeBlendshapeGaze(blendshapes: { categoryName: string; score: numbe
 function processFrame(video: HTMLVideoElement) {
   if (!active || !faceLandmarker) return
 
+  frameCount++
+  if (frameCount % 2 !== 0) {
+    rafId = requestAnimationFrame(() => processFrame(video))
+    return
+  }
+
   const now = performance.now()
   const results = faceLandmarker.detectForVideo(video, now)
 
@@ -253,6 +260,7 @@ export function startGazeTracking(video: HTMLVideoElement): void {
   if (active) return
   active = true
   smoothedConfidence = 0.5
+  frameCount = 0
   rafId = requestAnimationFrame(() => processFrame(video))
 }
 

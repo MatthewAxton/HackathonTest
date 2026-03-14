@@ -17,6 +17,7 @@ type PoseFrameCallback = (frame: PoseFrame) => void
 let poseLandmarker: PoseLandmarker | null = null
 let rafId = 0
 let active = false
+let frameCount = 0
 const subscribers = new Set<PoseFrameCallback>()
 
 // Buffers for stability calculation
@@ -51,6 +52,12 @@ function stdDev(values: number[]): number {
 
 function processFrame(video: HTMLVideoElement) {
   if (!active || !poseLandmarker) return
+
+  frameCount++
+  if (frameCount % 2 !== 0) {
+    rafId = requestAnimationFrame(() => processFrame(video))
+    return
+  }
 
   const startTimeMs = performance.now()
   const results = poseLandmarker.detectForVideo(video, startTimeMs)
@@ -117,6 +124,7 @@ export function startPoseTracking(video: HTMLVideoElement): void {
   headPositions.length = 0
   prevLeftWrist = null
   prevRightWrist = null
+  frameCount = 0
   rafId = requestAnimationFrame(() => processFrame(video))
 }
 
