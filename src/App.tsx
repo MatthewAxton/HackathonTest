@@ -165,7 +165,7 @@ function Homepage() {
           >
             <div className="glass px-5 py-2.5 rounded-2xl">
               <span className="text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                What would you like to practice?
+                <TalkingBubble text="What would you like to practice?" />
               </span>
             </div>
           </motion.div>
