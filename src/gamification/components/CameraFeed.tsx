@@ -77,7 +77,7 @@ export function CameraFeed({ overlay, mirror = true, borderRadius = 20, style, w
             transform: mirror ? 'scaleX(-1)' : undefined,
           }}
         />
-        {overlay && <div style={{ position: 'absolute', inset: 0 }}>{overlay}</div>}
+        {overlay && <div style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>{overlay}</div>}
       </div>
     )
   }

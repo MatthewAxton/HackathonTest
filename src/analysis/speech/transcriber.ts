@@ -17,11 +17,53 @@ declare global {
   }
 }
 
+// Simulation fallback sentences
+const SIM_SENTENCES = [
+  'I think the most important thing is to stay focused',
+  'um you know when I was working on that project',
+  'basically what happened was we had to like rethink everything',
+  'so I decided to take a different approach to the problem',
+  'the results were actually quite impressive I think',
+  'I mean it was challenging but we got through it',
+  'like the key insight was understanding the user needs',
+  'you know I believe communication is um really important',
+  'so basically we implemented a new strategy and it worked',
+  'I would say my greatest strength is problem solving',
+  'right so the way I handle conflict is through dialogue',
+  'actually I find that preparation is like really key',
+]
+
 let recognition: SpeechRecognition | null = null
 let active = false
 let cumulativeWordCount = 0
 let lastError: string | null = null
 const subscribers = new Set<TranscriptCallback>()
+
+// Simulation fallback state
+let simMode = false
+let simInterval: ReturnType<typeof setInterval> | null = null
+let simIndex = 0
+let resultReceived = false
+let fallbackTimer: ReturnType<typeof setTimeout> | null = null
+
+function startSimulation() {
+  simMode = true
+  console.log('[SpeechMAX] Speech recognition fallback: simulation mode active')
+  simInterval = setInterval(() => {
+    if (!active) return
+    const text = SIM_SENTENCES[simIndex % SIM_SENTENCES.length]
+    simIndex++
+    const words = text.split(/\s+/).filter(Boolean).length
+    cumulativeWordCount += words
+    const event: TranscriptEvent = {
+      text,
+      isFinal: true,
+      wordCount: cumulativeWordCount,
+      timestamp: Date.now(),
+    }
+    subscribers.forEach(cb => cb(event))
+  }, 2000 + Math.random() * 1500)
+}
 
 function createRecognition(): SpeechRecognition {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -33,6 +75,8 @@ function createRecognition(): SpeechRecognition {
   rec.lang = 'en-US'
 
   rec.onresult = (event: SpeechRecognitionEvent) => {
+    resultReceived = true
+    if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null }
     for (let i = event.resultIndex; i < event.results.length; i++) {
       const result = event.results[i]
       const text = result[0].transcript.trim()
@@ -90,6 +134,11 @@ export function startTranscription(): void {
   active = true
   cumulativeWordCount = 0
   startInternal()
+  resultReceived = false
+  simMode = false
+  fallbackTimer = setTimeout(() => {
+    if (active && !resultReceived && !simMode) startSimulation()
+  }, 5000)
 }
 
 export function stopTranscription(): void {
@@ -98,6 +147,9 @@ export function stopTranscription(): void {
     try { recognition.stop() } catch { /* ignore */ }
     recognition = null
   }
+  if (simInterval) { clearInterval(simInterval); simInterval = null }
+  if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null }
+  simMode = false
 }
 
 export function onTranscript(callback: TranscriptCallback): () => void {
@@ -109,6 +161,6 @@ export function isTranscribing(): boolean {
   return active
 }
 
-export function getTranscriberStatus(): { active: boolean; error: string | null } {
-  return { active, error: lastError }
+export function getTranscriberStatus(): { active: boolean; error: string | null; simulated: boolean } {
+  return { active, error: lastError, simulated: simMode }
 }

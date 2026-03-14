@@ -24,7 +24,6 @@ export function EyeContactIndicator({
   leftEyePos, rightEyePos,
 }: EyeContactIndicatorProps) {
   const color = QUALITY_COLORS[quality]
-  const ringSize = 52
 
   return (
     <>
@@ -37,49 +36,54 @@ export function EyeContactIndicator({
 
       {/* Eye tracking circles — positioned at actual eye locations */}
       {leftEyePos && (
-        <motion.div
-          animate={{
-            left: `${(1 - leftEyePos.x) * 100}%`,
-            top: `${leftEyePos.y * 100}%`,
-          }}
-          transition={{ type: 'spring', stiffness: 150, damping: 20 }}
-          style={{
-            position: 'absolute', pointerEvents: 'none',
-            width: ringSize, height: ringSize,
-            marginLeft: -ringSize / 2, marginTop: -ringSize / 2,
-          }}
-        >
-          <svg width={ringSize} height={ringSize}>
-            <circle cx={ringSize / 2} cy={ringSize / 2} r={ringSize / 2 - 3} fill="none"
-              stroke={color} strokeWidth={3} opacity={0.8}
-              style={{ transition: 'stroke 0.3s ease', filter: `drop-shadow(0 0 8px ${color}80)` }} />
-            <circle cx={ringSize / 2} cy={ringSize / 2} r={4} fill={color}
-              style={{ transition: 'fill 0.3s ease' }} />
+        <div style={{
+          position: 'absolute', pointerEvents: 'none',
+          left: `${(1 - leftEyePos.x) * 100}%`,
+          top: `${leftEyePos.y * 100}%`,
+          width: 60, height: 60,
+          marginLeft: -30, marginTop: -30,
+          transition: 'left 0.1s ease-out, top 0.1s ease-out',
+        }}>
+          <svg width={60} height={60}>
+            <circle cx={30} cy={30} r={26} fill="none"
+              stroke={color} strokeWidth={4} opacity={0.9}
+              style={{ transition: 'stroke 0.3s ease', filter: `drop-shadow(0 0 12px ${color})` }} />
+            <circle cx={30} cy={30} r={5} fill={color}
+              style={{ transition: 'fill 0.3s ease', filter: `drop-shadow(0 0 6px ${color})` }} />
           </svg>
-        </motion.div>
+        </div>
       )}
 
       {rightEyePos && (
-        <motion.div
-          animate={{
-            left: `${(1 - rightEyePos.x) * 100}%`,
-            top: `${rightEyePos.y * 100}%`,
-          }}
-          transition={{ type: 'spring', stiffness: 150, damping: 20 }}
-          style={{
-            position: 'absolute', pointerEvents: 'none',
-            width: ringSize, height: ringSize,
-            marginLeft: -ringSize / 2, marginTop: -ringSize / 2,
-          }}
-        >
-          <svg width={ringSize} height={ringSize}>
-            <circle cx={ringSize / 2} cy={ringSize / 2} r={ringSize / 2 - 3} fill="none"
-              stroke={color} strokeWidth={3} opacity={0.8}
-              style={{ transition: 'stroke 0.3s ease', filter: `drop-shadow(0 0 8px ${color}80)` }} />
-            <circle cx={ringSize / 2} cy={ringSize / 2} r={4} fill={color}
-              style={{ transition: 'fill 0.3s ease' }} />
+        <div style={{
+          position: 'absolute', pointerEvents: 'none',
+          left: `${(1 - rightEyePos.x) * 100}%`,
+          top: `${rightEyePos.y * 100}%`,
+          width: 60, height: 60,
+          marginLeft: -30, marginTop: -30,
+          transition: 'left 0.1s ease-out, top 0.1s ease-out',
+        }}>
+          <svg width={60} height={60}>
+            <circle cx={30} cy={30} r={26} fill="none"
+              stroke={color} strokeWidth={4} opacity={0.9}
+              style={{ transition: 'stroke 0.3s ease', filter: `drop-shadow(0 0 12px ${color})` }} />
+            <circle cx={30} cy={30} r={5} fill={color}
+              style={{ transition: 'fill 0.3s ease', filter: `drop-shadow(0 0 6px ${color})` }} />
           </svg>
-        </motion.div>
+        </div>
+      )}
+
+      {/* Loading indicator when eye tracking model is initializing */}
+      {!leftEyePos && !rightEyePos && (
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+          pointerEvents: 'none', textAlign: 'center',
+        }}>
+          <motion.div animate={{ opacity: [0.3, 0.8, 0.3] }} transition={{ repeat: Infinity, duration: 2 }}
+            style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>
+            Initializing eye tracking...
+          </motion.div>
+        </div>
       )}
 
       {/* Session stats — top right */}

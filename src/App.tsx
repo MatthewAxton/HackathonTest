@@ -65,10 +65,24 @@ function AnimatedRoutes() {
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/progress" element={<Progress />} />
             </Route>
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </motion.div>
     </AnimatePresence>
+  )
+}
+
+/* ====== 404 NOT FOUND ====== */
+function NotFound() {
+  const nav = useNavigate()
+  return (
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#050508', color: 'rgba(255,255,255,0.9)', fontFamily: 'Nunito, sans-serif' }}>
+      <img src="/IDLE.gif" alt="Mike" style={{ width: 120, height: 120, marginBottom: 24 }} />
+      <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8 }}>Lost your way?</h1>
+      <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)', marginBottom: 24 }}>This page doesn't exist. Let's get you back on track.</p>
+      <button onClick={() => nav('/')} style={{ background: '#c28fe7', color: 'white', border: 'none', padding: '12px 32px', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Go Home</button>
+    </div>
   )
 }
 

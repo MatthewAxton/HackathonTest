@@ -30,6 +30,7 @@ export default function RadarScan() {
   const [fillers, setFillers] = useState(0)
   const [transcriptStatus, setTranscriptStatus] = useState('')
   const micStarted = useRef(false)
+  const scanFinished = useRef(false)
 
   // Sensor accumulators
   const gazeFrames = useRef({ good: 0, total: 0 })
@@ -102,60 +103,65 @@ export default function RadarScan() {
       setWpm(getRollingWpm())
       setFillers(getFillerCount())
       const status = getTranscriberStatus()
-      setTranscriptStatus(status.error ? `Error: ${status.error}` : status.active ? 'Listening...' : 'Inactive')
+      setTranscriptStatus(status.simulated ? 'Demo mode (simulated)' : status.error ? `Error: ${status.error}` : status.active ? 'Listening...' : 'Inactive')
     }, 500)
     return () => clearInterval(wpmInterval)
   }, [])
+
+  const finishScan = useCallback(() => {
+    if (scanFinished.current) return
+    scanFinished.current = true
+
+    // Stop all analysis
+    stopTranscription()
+    stopFillerDetection()
+    stopWpmTracking()
+    stopAudioAnalysis()
+    stopGazeTracking()
+    stopPoseTracking()
+
+    // Compute real sensor values
+    const eyeContactPercent = gazeFrames.current.total > 0
+      ? (gazeFrames.current.good / gazeFrames.current.total) * 100 : 50
+    const postureScore = poseScores.current.length > 0
+      ? poseScores.current.reduce((a, b) => a + b) / poseScores.current.length : 50
+    const pitchStdDev = computeStdDev(pitchReadings.current)
+    const stillnessPercent = stillFrames.current.total > 0
+      ? (stillFrames.current.still / stillFrames.current.total) * 100 : 50
+
+    appendRawData({
+      durationSeconds: 30,
+      fillerCount: getFillerCount(),
+      wordCount: wordCountRef.current,
+      avgWpm: getRollingWpm(),
+      wpmStdDev: getWpmStdDev(),
+      eyeContactPercent: Math.round(eyeContactPercent),
+      postureScore: Math.round(postureScore),
+      pitchStdDev: Math.round(pitchStdDev),
+      stillnessPercent: Math.round(stillnessPercent),
+      fidgetCount: fidgets.current,
+    })
+    completeScan()
+    playScanComplete()
+    useSessionStore.getState().recordScan()
+    const badges = useSessionStore.getState().checkBadges()
+    if (badges && badges.length > 0) playBadgeEarned()
+
+    setPhase('analyzing')
+  }, [appendRawData, completeScan])
 
   // Timer countdown
   useEffect(() => {
     const t = setInterval(() => setTime(p => {
       if (p <= 1) {
         clearInterval(t)
-
-        // Stop all analysis
-        stopTranscription()
-        stopFillerDetection()
-        stopWpmTracking()
-        stopAudioAnalysis()
-        stopGazeTracking()
-        stopPoseTracking()
-
-        // Compute real sensor values
-        const eyeContactPercent = gazeFrames.current.total > 0
-          ? (gazeFrames.current.good / gazeFrames.current.total) * 100 : 50
-        const postureScore = poseScores.current.length > 0
-          ? poseScores.current.reduce((a, b) => a + b) / poseScores.current.length : 50
-        const pitchStdDev = computeStdDev(pitchReadings.current)
-        const stillnessPercent = stillFrames.current.total > 0
-          ? (stillFrames.current.still / stillFrames.current.total) * 100 : 50
-
-        // Save scan data to store with real values
-        appendRawData({
-          durationSeconds: 30,
-          fillerCount: getFillerCount(),
-          wordCount: wordCountRef.current,
-          avgWpm: getRollingWpm(),
-          wpmStdDev: getWpmStdDev(),
-          eyeContactPercent: Math.round(eyeContactPercent),
-          postureScore: Math.round(postureScore),
-          pitchStdDev: Math.round(pitchStdDev),
-          stillnessPercent: Math.round(stillnessPercent),
-          fidgetCount: fidgets.current,
-        })
-        completeScan()
-        playScanComplete()
-        useSessionStore.getState().recordScan()
-        const badges = useSessionStore.getState().checkBadges()
-        if (badges && badges.length > 0) playBadgeEarned()
-
-        setPhase('analyzing')
+        finishScan()
         return 0
       }
       return p - 1
     }), 1000)
     return () => clearInterval(t)
-  }, [nav, appendRawData, completeScan])
+  }, [nav, finishScan])
 
   // Navigate after analyzing phase
   useEffect(() => {
@@ -223,6 +229,16 @@ export default function RadarScan() {
             <span style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '6px 14px', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Eye size={14} color="var(--purple)" /> <span style={{ color: 'var(--purple)', fontWeight: 700 }}>{fillers} fillers</span></span>
             <span style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '6px 14px', fontSize: 11, fontWeight: 600, color: transcriptStatus.startsWith('Error') ? 'var(--red)' : 'var(--muted)' }}>{transcriptStatus}</span>
           </div>
+          {time < 20 && (
+            <motion.button
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={finishScan}
+              style={{ marginTop: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 14, padding: '10px 28px', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}
+            >
+              Finish Early
+            </motion.button>
+          )}
         </div>
       </div>
     </div>
