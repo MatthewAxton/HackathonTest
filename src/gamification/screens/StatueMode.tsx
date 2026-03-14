@@ -6,6 +6,9 @@ import { AudioWave } from '../components/AudioWave'
 import { GraceCountdown } from '../components/GraceCountdown'
 import { CameraFeed } from '../components/CameraFeed'
 import { initPoseTracker, startPoseTracking, stopPoseTracking, onPoseFrame } from '../../analysis/mediapipe/poseTracker'
+import { computeSimpleGameScore } from '../../analysis/scoring/gameScorer'
+import { useGameStore } from '../../store/gameStore'
+import { useSessionStore } from '../../store/sessionStore'
 
 export default function StatueMode() {
   const nav = useNavigate()
@@ -17,6 +20,7 @@ export default function StatueMode() {
   const [handStatus, setHandStatus] = useState<'stable' | 'moving'>('stable')
   const [modelLoading, setModelLoading] = useState(true)
   const alertCount = useRef(0)
+  const composureRef = useRef(100)
 
   const onReady = useCallback(async () => {
     try {
@@ -42,7 +46,9 @@ export default function StatueMode() {
   useEffect(() => {
     if (!ready) return
     const unsub = onPoseFrame((frame) => {
-      setComposureScore(Math.round(frame.postureScore * 0.4 + frame.headStability * 60))
+      const score = Math.round(frame.postureScore * 0.4 + frame.headStability * 60)
+      composureRef.current = score
+      setComposureScore(score)
       setHeadStatus(frame.headStability > 0.7 ? 'stable' : 'moving')
       setHandStatus(frame.handMovement < 0.2 ? 'stable' : 'moving')
       if (frame.isFidgeting) {
@@ -60,6 +66,11 @@ export default function StatueMode() {
       if (p <= 1) {
         clearInterval(t)
         stopPoseTracking()
+        const metrics = { stillnessPercent: composureRef.current, movementAlerts: alertCount.current }
+        const score = computeSimpleGameScore('statue-mode', metrics)
+        useGameStore.getState().addGameResult({ gameType: 'statue-mode', score, metrics, timestamp: Date.now() })
+        useSessionStore.getState().recordGame('statue-mode')
+        useSessionStore.getState().checkBadges()
         nav('/score/statue')
         return 0
       }

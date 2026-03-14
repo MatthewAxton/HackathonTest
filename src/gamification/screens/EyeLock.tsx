@@ -8,6 +8,9 @@ import { GraceCountdown } from '../components/GraceCountdown'
 import { CameraFeed } from '../components/CameraFeed'
 import { EyeContactIndicator } from '../components/EyeContactIndicator'
 import { useEyeContact } from '../../analysis/hooks/useEyeContact'
+import { computeSimpleGameScore } from '../../analysis/scoring/gameScorer'
+import { useGameStore } from '../../store/gameStore'
+import { useSessionStore } from '../../store/sessionStore'
 
 const QUALITY_COLORS = { good: '#58CC02', weak: '#F5A623', lost: '#FF4B4B' }
 
@@ -49,6 +52,11 @@ export default function EyeLock() {
       if (p <= 1) {
         clearInterval(t)
         eye.stopTracking()
+        const metrics = { gazeLockedPercent: eye.sessionPercent, longestGazeSeconds: eye.longestStreak }
+        const score = computeSimpleGameScore('eye-lock', metrics)
+        useGameStore.getState().addGameResult({ gameType: 'eye-lock', score, metrics, timestamp: Date.now() })
+        useSessionStore.getState().recordGame('eye-lock')
+        useSessionStore.getState().checkBadges()
         nav('/score/eyelock')
         return 0
       }

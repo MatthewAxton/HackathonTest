@@ -1,6 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import type { StateStorage } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import type { PromptCategory, BadgeContext, GameType } from '../analysis/types'
 import BADGES from '../lib/badges'
 import PROMPTS from '../lib/prompts'
@@ -31,23 +30,7 @@ interface SessionState {
   recordGame: (game: GameType) => void
 }
 
-const sessionStorage: StateStorage = {
-  getItem: (name) => {
-    const str = localStorage.getItem(name)
-    if (!str) return null
-    const parsed = JSON.parse(str)
-    if (parsed.state.usedPrompts) parsed.state.usedPrompts = new Set(parsed.state.usedPrompts)
-    if (parsed.state.earnedBadges) parsed.state.earnedBadges = new Set(parsed.state.earnedBadges)
-    return JSON.stringify(parsed)
-  },
-  setItem: (name, value) => {
-    const parsed = JSON.parse(value)
-    if (parsed.state.usedPrompts instanceof Set) parsed.state.usedPrompts = [...parsed.state.usedPrompts]
-    if (parsed.state.earnedBadges instanceof Set) parsed.state.earnedBadges = [...parsed.state.earnedBadges]
-    localStorage.setItem(name, JSON.stringify(parsed))
-  },
-  removeItem: (name) => localStorage.removeItem(name),
-}
+const sessionStorageAdapter = createJSONStorage<SessionState>(() => localStorage)
 
 export const useSessionStore = create<SessionState>()(
   persist(
@@ -159,16 +142,21 @@ export const useSessionStore = create<SessionState>()(
 }),
     {
       name: 'speechmax-session',
-      storage: {
-        getItem: (name) => {
-          const result = sessionStorage.getItem(name)
-          if (!result) return null
-          return JSON.parse(result)
-        },
-        setItem: (name, value) => {
-          sessionStorage.setItem(name, JSON.stringify(value))
-        },
-        removeItem: (name) => sessionStorage.removeItem(name),
+      storage: sessionStorageAdapter,
+      partialize: (state) => ({
+        ...state,
+        usedPrompts: [...state.usedPrompts] as unknown as Set<string>,
+        earnedBadges: [...state.earnedBadges] as unknown as Set<string>,
+      }),
+      merge: (persisted, current) => {
+        const p = persisted as Partial<SessionState> | undefined
+        if (!p) return current
+        return {
+          ...current,
+          ...p,
+          usedPrompts: new Set(p.usedPrompts as unknown as string[] ?? []),
+          earnedBadges: new Set(p.earnedBadges as unknown as string[] ?? []),
+        }
       },
     }
   )

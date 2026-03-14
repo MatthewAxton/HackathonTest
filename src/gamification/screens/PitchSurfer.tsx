@@ -8,6 +8,9 @@ import { AudioWave } from '../components/AudioWave'
 import { GraceCountdown } from '../components/GraceCountdown'
 import { startAudioAnalysis, stopAudioAnalysis, onAudioFrame } from '../../analysis/audio/pitchAnalyzer'
 import { useMicrophone } from '../../analysis/hooks/useMicrophone'
+import { computeSimpleGameScore } from '../../analysis/scoring/gameScorer'
+import { useGameStore } from '../../store/gameStore'
+import { useSessionStore } from '../../store/sessionStore'
 
 export default function PitchSurfer() {
   const nav = useNavigate()
@@ -18,6 +21,7 @@ export default function PitchSurfer() {
   const [variation, setVariation] = useState<'low' | 'good' | 'high'>('low')
   const { requestMic, stopMic } = useMicrophone()
   const pitchBuffer = useRef<number[]>([])
+  const monotoneSeconds = useRef(0)
 
   const onReady = useCallback(async () => {
     const stream = await requestMic()
@@ -49,7 +53,7 @@ export default function PitchSurfer() {
       const stdDev = Math.sqrt(buf.reduce((sum, v) => sum + (v - mean) ** 2, 0) / buf.length)
       if (stdDev > 30) setVariation('high')
       else if (stdDev > 15) setVariation('good')
-      else setVariation('low')
+      else { setVariation('low'); monotoneSeconds.current++ }
     }, 1000)
     return () => clearInterval(id)
   }, [ready])
@@ -81,6 +85,17 @@ export default function PitchSurfer() {
           clearInterval(t)
           stopAudioAnalysis()
           stopMic()
+          const pitchVar = pitchBuffer.current.length >= 2
+            ? Math.sqrt(pitchBuffer.current.reduce((sum, v, _, arr) => {
+                const mean = arr.reduce((a, b) => a + b, 0) / arr.length
+                return sum + (v - mean) ** 2
+              }, 0) / pitchBuffer.current.length)
+            : 0
+          const metrics = { pitchVariation: pitchVar, monotoneSeconds: monotoneSeconds.current, totalSeconds: 30 }
+          const score = computeSimpleGameScore('pitch-surfer', metrics)
+          useGameStore.getState().addGameResult({ gameType: 'pitch-surfer', score, metrics, timestamp: Date.now() })
+          useSessionStore.getState().recordGame('pitch-surfer')
+          useSessionStore.getState().checkBadges()
           nav('/score/pitch')
           return 0
         }

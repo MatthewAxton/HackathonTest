@@ -8,6 +8,9 @@ import { GraceCountdown } from '../components/GraceCountdown'
 import { startTranscription, stopTranscription, onTranscript } from '../../analysis/speech/transcriber'
 import { startFillerDetection, stopFillerDetection, onFillerDetected, getFillerCount } from '../../analysis/speech/fillerDetector'
 import { useMicrophone } from '../../analysis/hooks/useMicrophone'
+import { computeSimpleGameScore } from '../../analysis/scoring/gameScorer'
+import { useGameStore } from '../../store/gameStore'
+import { useSessionStore } from '../../store/sessionStore'
 
 export default function FillerNinja() {
   const nav = useNavigate()
@@ -60,6 +63,11 @@ export default function FillerNinja() {
           stopTranscription()
           stopFillerDetection()
           stopMic()
+          const metrics = { fillerCount: getFillerCount(), durationSeconds: 90, longestStreakSeconds: Math.floor((Date.now() - lastFillerTime.current) / 1000) }
+          const score = computeSimpleGameScore('filler-ninja', metrics)
+          useGameStore.getState().addGameResult({ gameType: 'filler-ninja', score, metrics, timestamp: Date.now() })
+          useSessionStore.getState().recordGame('filler-ninja')
+          useSessionStore.getState().checkBadges()
           nav('/score/filler')
           return 0
         }

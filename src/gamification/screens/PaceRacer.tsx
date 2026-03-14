@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Zap } from 'lucide-react'
@@ -8,6 +8,9 @@ import { GraceCountdown } from '../components/GraceCountdown'
 import { startTranscription, stopTranscription } from '../../analysis/speech/transcriber'
 import { startWpmTracking, stopWpmTracking, onWpmReading } from '../../analysis/speech/wpmTracker'
 import { useMicrophone } from '../../analysis/hooks/useMicrophone'
+import { computeSimpleGameScore } from '../../analysis/scoring/gameScorer'
+import { useGameStore } from '../../store/gameStore'
+import { useSessionStore } from '../../store/sessionStore'
 
 export default function PaceRacer() {
   const nav = useNavigate()
@@ -15,6 +18,8 @@ export default function PaceRacer() {
   const [wpm, setWpm] = useState(0)
   const [timeInZone, setTimeInZone] = useState(0)
   const [ready, setReady] = useState(false)
+  const wpmRef = useRef(0)
+  const timeInZoneRef = useRef(0)
   const { requestMic, stopMic } = useMicrophone()
 
   const onReady = useCallback(async () => {
@@ -29,8 +34,9 @@ export default function PaceRacer() {
     if (!ready) return
     const unsub = onWpmReading((reading) => {
       setWpm(reading.rolling)
+      wpmRef.current = reading.rolling
       if (reading.rolling >= 120 && reading.rolling <= 160) {
-        setTimeInZone(p => p + 1)
+        setTimeInZone(p => { timeInZoneRef.current = p + 1; return p + 1 })
       }
     })
     return unsub
@@ -45,6 +51,11 @@ export default function PaceRacer() {
           stopTranscription()
           stopWpmTracking()
           stopMic()
+          const metrics = { timeInZoneSeconds: timeInZoneRef.current, totalSeconds: 60, avgWpm: wpmRef.current }
+          const score = computeSimpleGameScore('pace-racer', metrics)
+          useGameStore.getState().addGameResult({ gameType: 'pace-racer', score, metrics, timestamp: Date.now() })
+          useSessionStore.getState().recordGame('pace-racer')
+          useSessionStore.getState().checkBadges()
           nav('/score/pace')
           return 0
         }
