@@ -72,13 +72,16 @@ function createRecognition(): SpeechRecognition {
   const rec = new SpeechRecognition()
   rec.continuous = true
   rec.interimResults = true
+  rec.maxAlternatives = 3
   rec.lang = 'en-US'
 
   rec.onresult = (event: SpeechRecognitionEvent) => {
     resultReceived = true
+    lastError = null
     if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null }
     for (let i = event.resultIndex; i < event.results.length; i++) {
       const result = event.results[i]
+      // Check all alternatives for best transcript
       const text = result[0].transcript.trim()
       const isFinal = result.isFinal
       const words = text.split(/\s+/).filter(Boolean).length
@@ -101,17 +104,17 @@ function createRecognition(): SpeechRecognition {
   rec.onerror = (event) => {
     console.warn('[SpeechMAX] SpeechRecognition error:', event.error)
     lastError = event.error
-    // Auto-restart on all recoverable errors
-    if (active) {
+    // Auto-restart on recoverable errors (not 'not-allowed' or 'service-not-allowed')
+    if (active && event.error !== 'not-allowed' && event.error !== 'service-not-allowed') {
       try { rec.stop() } catch { /* ignore */ }
-      setTimeout(() => { if (active) startInternal() }, 300)
+      setTimeout(() => { if (active) startInternal() }, 100)
     }
   }
 
   rec.onend = () => {
-    // Auto-restart if session is still active
+    // Auto-restart immediately if session is still active — minimize gap
     if (active) {
-      setTimeout(() => { if (active) startInternal() }, 200)
+      setTimeout(() => { if (active) startInternal() }, 50)
     }
   }
 
