@@ -1,0 +1,109 @@
+/* ====== GAMIFICATION THEME ======
+   Scoped under .gamification-theme to avoid conflicts with the dark homepage.
+   These styles come from the teammate's speechmax-prototype/src/index.css.
+*/
+
+.gamification-theme {
+  --purple: #C28FE7;
+  --purple-dark: #8B5CF6;
+  --purple-darker: #6D28D9;
+  --surface: #F9F6FF;
+  --border: #E5D5F7;
+  --green: #58CC02;
+  --red: #FF4B4B;
+  --text: #1A1A1A;
+  --muted: #777777;
+
+  font-family: 'Nunito', sans-serif;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 85%, rgba(194,143,231,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 15%, rgba(194,143,231,0.15) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 50% at 50% 50%, rgba(194,143,231,0.09) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 35% at 75% 70%, rgba(139,92,246,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 45% 35% at 10% 25%, rgba(194,143,231,0.14) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 30% at 40% 90%, rgba(139,92,246,0.11) 0%, transparent 50%),
+    radial-gradient(ellipse 35% 25% at 90% 50%, rgba(194,143,231,0.12) 0%, transparent 45%),
+    #fff;
+  color: var(--text);
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 100% 50%; }
+  50% { background-position: 50% 100%; }
+  75% { background-position: 100% 0%; }
+  100% { background-position: 0% 50%; }
+}
+
+.gamification-theme .gradient-banner {
+  background: linear-gradient(135deg, #C28FE7, #8B5CF6, #6D28D9, #A855F7, #C28FE7, #8B5CF6);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  color: white;
+}
+
+@keyframes waveBar {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+.gamification-theme .btn-primary {
+  background: var(--purple); color: white; border: none; height: 52px;
+  padding: 0 32px; border-radius: 24px; font-family: 'Nunito'; font-size: 16px;
+  font-weight: 700; cursor: pointer; display: inline-flex; align-items: center;
+  justify-content: center; transition: transform 0.1s, box-shadow 0.1s;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 4px solid #9B6BC2; position: relative;
+}
+.gamification-theme .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(194, 143, 231, 0.3); }
+.gamification-theme .btn-primary:active { transform: translateY(2px); border-bottom-width: 2px; box-shadow: none; }
+
+.gamification-theme .btn-secondary {
+  background: white; color: var(--purple); border: 2px solid var(--purple);
+  height: 52px; padding: 0 32px; border-radius: 24px; font-family: 'Nunito';
+  font-size: 16px; font-weight: 700; cursor: pointer; display: inline-flex;
+  align-items: center; justify-content: center; transition: transform 0.1s, box-shadow 0.1s;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 4px solid #D4B5EC; position: relative;
+}
+.gamification-theme .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(194, 143, 231, 0.15); }
+.gamification-theme .btn-secondary:active { transform: translateY(2px); border-bottom-width: 2px; box-shadow: none; }
+
+.gamification-theme .card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(194, 143, 231, 0.15);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(194, 143, 231, 0.08);
+}
+
+.gamification-theme .card-surface {
+  background: rgba(249, 246, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(194, 143, 231, 0.12);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(194, 143, 231, 0.06);
+}
+
+.gamification-theme .glass-card {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(194, 143, 231, 0.12);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(194, 143, 231, 0.1), 0 2px 8px rgba(194, 143, 231, 0.06);
+}
+
+.gamification-theme .gradient-text {
+  background: linear-gradient(135deg, #C28FE7, #8B5CF6, #A855F7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gamification-theme .progress-track { height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
+.gamification-theme .progress-fill { height: 100%; background: var(--purple); border-radius: 5px; transition: width 0.5s ease; }

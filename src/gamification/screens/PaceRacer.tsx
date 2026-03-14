@@ -1,0 +1,54 @@
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { Zap } from 'lucide-react'
+import { TopBanner, BottomBanner } from '../components/Banner'
+import { AudioWave } from '../components/AudioWave'
+import { GraceCountdown } from '../components/GraceCountdown'
+
+export default function PaceRacer() {
+  const nav = useNavigate()
+  const [time, setTime] = useState(3)
+  const [wpm, setWpm] = useState(142)
+  const [ready, setReady] = useState(false)
+  const onReady = useCallback(() => setReady(true), [])
+  useEffect(() => {
+    if (!ready) return
+    const t = setInterval(() => {
+      setTime(p => { if (p <= 1) { clearInterval(t); nav('/score/pace'); return 0 } return p - 1 })
+      setWpm(120 + Math.floor(Math.random() * 40))
+    }, 1000)
+    return () => clearInterval(t)
+  }, [nav, ready])
+
+  const inZone = wpm >= 120 && wpm <= 160
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+      {!ready && <GraceCountdown onReady={onReady} prompt="Talk about why pace matters in communication." promptLabel="Freestyle" />}
+      <TopBanner backTo="/queue" title="Pace Racer" center={<span style={{ background: 'rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: 12, fontSize: 15, fontWeight: 800 }}>0:{time.toString().padStart(2, '0')}</span>} right={<span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700 }}><Zap size={14} /> 520</span>} />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <div style={{ width: '100%', maxWidth: 960, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px 40px' }}>
+          <motion.div animate={{ scale: [1, 1.02, 1] }} transition={{ repeat: Infinity, duration: 2.5 }} style={{ textAlign: 'center', marginBottom: 8 }}>
+            <motion.span key={wpm} initial={{ y: -8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }} style={{ fontSize: 64, fontWeight: 800, lineHeight: 1, display: 'inline-block', background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{wpm}</motion.span><span style={{ fontSize: 22, fontWeight: 700, color: 'var(--muted)' }}> WPM</span>
+          </motion.div>
+          <div style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 600, marginBottom: 20 }}>Target: 120–160 WPM</div>
+          <div style={{ width: '100%', maxWidth: 600, marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}><span style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)' }}>Slow</span><span style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)' }}>Fast</span></div>
+            <div style={{ height: 16, background: 'var(--border)', borderRadius: 8, position: 'relative' }}>
+              <motion.div animate={{ width: `${Math.min(100, (wpm / 200) * 100)}%` }} style={{ height: '100%', background: inZone ? 'var(--green)' : 'var(--red)', borderRadius: 8 }} />
+              <div style={{ position: 'absolute', top: -4, left: '33%', width: 2, height: 24, background: 'var(--text)', opacity: 0.2 }} />
+              <div style={{ position: 'absolute', top: -4, left: '75%', width: 2, height: 24, background: 'var(--text)', opacity: 0.2 }} />
+            </div>
+            <div style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, color: inZone ? 'var(--green)' : 'var(--red)', marginTop: 8 }}>{inZone ? '120–160 WPM Zone' : 'Outside zone!'}</div>
+          </div>
+          <div className="card" style={{ width: '100%', maxWidth: 600, textAlign: 'center', padding: '18px 28px', marginBottom: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 6 }}>Freestyle</div>
+            <div style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.4 }}>Talk about why pace matters in communication.</div>
+          </div>
+          <AudioWave />
+        </div>
+      </div>
+      <BottomBanner left={<div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 14, padding: '8px 16px', fontSize: 13, fontWeight: 600 }}>{inZone ? 'Perfect pace! Keep that rhythm.' : 'Slow down a bit!'}</div>} center={<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><div style={{ fontSize: 22, fontWeight: 800, color: inZone ? '#58CC02' : '#FF4B4B' }}>{inZone ? 'In Zone' : 'Too Fast!'}</div><div style={{ fontSize: 11, fontWeight: 600, opacity: 0.7, textTransform: 'uppercase', letterSpacing: 0.5 }}>{wpm} WPM</div></div>} right={<><Zap size={14} /> Score: 520</>} />
+    </div>
+  )
+}
