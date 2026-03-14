@@ -1,6 +1,8 @@
 /**
  * E3.R2 — Filler Word Detector
- * Scans final transcripts for filler words and emits events.
+ * Scans transcripts for filler words and emits events.
+ * Uses both interim and final results for fast detection.
+ * Tracks per-segment detections to handle repeated words correctly.
  */
 import type { FillerEvent, TranscriptEvent } from '../types'
 import { onTranscript } from './transcriber'
@@ -23,47 +25,58 @@ const FILLER_PATTERNS = FILLER_WORDS.map((word) => ({
 
 const subscribers = new Set<FillerCallback>()
 let totalFillerCount = 0
-let lastProcessedText = ''
-let detectedPositions = new Set<string>()
 let unsubTranscript: (() => void) | null = null
 
+// Track what we've already detected in the current interim sequence
+// Key: count of each filler word detected so far in the current segment
+let interimFillerCounts = new Map<string, number>()
+let lastInterimText = ''
+
+function countMatches(text: string, regex: RegExp): number {
+  regex.lastIndex = 0
+  let count = 0
+  while (regex.exec(text) !== null) count++
+  return count
+}
+
 function processTranscript(event: TranscriptEvent) {
-  const newText = event.text
-  if (newText === lastProcessedText) return
+  const text = event.text
+  if (!text || text === lastInterimText) return
+  lastInterimText = text
 
-  // For final transcripts, update baseline
-  if (event.isFinal) {
-    lastProcessedText = newText
-  }
-
+  // For each filler word, count occurrences in current text
+  // If count increased since last check, emit new detections
   for (const { word, regex } of FILLER_PATTERNS) {
-    regex.lastIndex = 0
-    let match: RegExpExecArray | null
-    while ((match = regex.exec(newText)) !== null) {
-      // Deduplicate: track by word+position to avoid double-firing
-      const key = `${word}:${match.index}`
-      if (detectedPositions.has(key)) continue
-      detectedPositions.add(key)
+    const currentCount = countMatches(text, regex)
+    const previousCount = interimFillerCounts.get(word) || 0
 
-      totalFillerCount++
-      const fillerEvent: FillerEvent = {
-        word,
-        timestamp: event.timestamp,
-        index: match.index,
+    if (currentCount > previousCount) {
+      // New filler(s) detected in this segment
+      const newDetections = currentCount - previousCount
+      for (let i = 0; i < newDetections; i++) {
+        totalFillerCount++
+        const fillerEvent: FillerEvent = {
+          word,
+          timestamp: event.timestamp,
+          index: totalFillerCount,
+        }
+        subscribers.forEach((cb) => cb(fillerEvent))
       }
-      subscribers.forEach((cb) => cb(fillerEvent))
+      interimFillerCounts.set(word, currentCount)
     }
   }
 
-  // Reset position tracking on final results to allow new detections
+  // On final result, reset for next segment
   if (event.isFinal) {
-    detectedPositions = new Set()
+    interimFillerCounts = new Map()
+    lastInterimText = ''
   }
 }
 
 export function startFillerDetection(): void {
   totalFillerCount = 0
-  lastProcessedText = ''
+  interimFillerCounts = new Map()
+  lastInterimText = ''
   unsubTranscript = onTranscript(processTranscript)
 }
 
