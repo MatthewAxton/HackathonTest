@@ -69,9 +69,33 @@ export function playScanComplete(): void {
   freqs.forEach(f => playTone(f, 400, 0.12))
 }
 
-/** FillerNinja filler detected: 150Hz sawtooth, 120ms */
+/** FillerNinja filler detected: dramatic descending error buzz */
 export function playFillerBuzz(): void {
-  playTone(150, 120, 0.15, 'sawtooth')
+  if (!soundEnabled) return
+  const ac = getCtx()
+  // Descending buzz: 400Hz→150Hz sawtooth
+  const osc1 = ac.createOscillator()
+  const g1 = ac.createGain()
+  osc1.type = 'sawtooth'
+  osc1.frequency.value = 400
+  osc1.frequency.exponentialRampToValueAtTime(150, ac.currentTime + 0.15)
+  g1.gain.value = 0.12
+  osc1.connect(g1)
+  g1.connect(ac.destination)
+  osc1.start(ac.currentTime)
+  g1.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.2)
+  osc1.stop(ac.currentTime + 0.21)
+  // Second layer: short square wave hit
+  const osc2 = ac.createOscillator()
+  const g2 = ac.createGain()
+  osc2.type = 'square'
+  osc2.frequency.value = 200
+  g2.gain.value = 0.08
+  osc2.connect(g2)
+  g2.connect(ac.destination)
+  osc2.start(ac.currentTime)
+  g2.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.1)
+  osc2.stop(ac.currentTime + 0.11)
 }
 
 /** All games on timer expiry: ascending C5-E5-G5, 100ms each staggered 100ms */
