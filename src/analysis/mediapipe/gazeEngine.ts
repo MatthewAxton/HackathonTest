@@ -59,9 +59,9 @@ type GazeCallback = (reading: GazeReading) => void
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const SIGNAL_WEIGHTS = { iris: 0.40, headPose: 0.35, blendshape: 0.25 }
-const EMA_ALPHA = 0.3          // Smoothing factor — lower = smoother but laggier
-const GOOD_THRESHOLD = 0.65
-const WEAK_THRESHOLD = 0.35
+const EMA_ALPHA = 0.2          // Smoothing factor — lower = smoother but laggier
+const GOOD_THRESHOLD = 0.55
+const WEAK_THRESHOLD = 0.30
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
