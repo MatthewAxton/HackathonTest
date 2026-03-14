@@ -9,12 +9,12 @@
   --color-primary-100: #f0e4f9;
   --color-primary-200: #e4cdf4;
   --color-primary-900: #3d1f5c;
-  --color-bg: #fafafa;
-  --color-surface: #ffffff;
-  --color-text-primary: #1a1a2e;
-  --color-text-secondary: #7a7a8a;
-  --color-text-tertiary: #aeaeb2;
-  --color-border: #e8e5f0;
+  --color-bg: #050508;
+  --color-surface: rgba(255,255,255,0.04);
+  --color-text-primary: rgba(255,255,255,0.9);
+  --color-text-secondary: rgba(255,255,255,0.6);
+  --color-text-tertiary: rgba(255,255,255,0.4);
+  --color-border: rgba(255,255,255,0.08);
   --color-green-500: #22c55e;
   --color-amber-500: #f59e0b;
   --color-red-500: #ef4444;
