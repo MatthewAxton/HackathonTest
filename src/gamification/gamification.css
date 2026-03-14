@@ -7,23 +7,23 @@
   --purple: #C28FE7;
   --purple-dark: #8B5CF6;
   --purple-darker: #6D28D9;
-  --surface: #F9F6FF;
-  --border: #E5D5F7;
+  --surface: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.08);
   --green: #58CC02;
   --red: #FF4B4B;
-  --text: #1A1A1A;
-  --muted: #777777;
+  --text: rgba(255,255,255,0.9);
+  --muted: rgba(255,255,255,0.4);
 
   font-family: 'Nunito', sans-serif;
   background:
-    radial-gradient(ellipse 70% 50% at 15% 85%, rgba(194,143,231,0.18) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 85% 15%, rgba(194,143,231,0.15) 0%, transparent 55%),
-    radial-gradient(ellipse 90% 50% at 50% 50%, rgba(194,143,231,0.09) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 35% at 75% 70%, rgba(139,92,246,0.12) 0%, transparent 50%),
-    radial-gradient(ellipse 45% 35% at 10% 25%, rgba(194,143,231,0.14) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 30% at 40% 90%, rgba(139,92,246,0.11) 0%, transparent 50%),
-    radial-gradient(ellipse 35% 25% at 90% 50%, rgba(194,143,231,0.12) 0%, transparent 45%),
-    #fff;
+    radial-gradient(ellipse 70% 50% at 15% 85%, rgba(194,143,231,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 15%, rgba(194,143,231,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 50% at 50% 50%, rgba(194,143,231,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 35% at 75% 70%, rgba(139,92,246,0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 45% 35% at 10% 25%, rgba(194,143,231,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 30% at 40% 90%, rgba(139,92,246,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse 35% 25% at 90% 50%, rgba(194,143,231,0.05) 0%, transparent 45%),
+    #050508;
   color: var(--text);
 }
 
@@ -59,43 +59,43 @@
 .gamification-theme .btn-primary:active { transform: translateY(2px); border-bottom-width: 2px; box-shadow: none; }
 
 .gamification-theme .btn-secondary {
-  background: white; color: var(--purple); border: 2px solid var(--purple);
+  background: transparent; color: var(--purple); border: 2px solid var(--purple);
   height: 52px; padding: 0 32px; border-radius: 24px; font-family: 'Nunito';
   font-size: 16px; font-weight: 700; cursor: pointer; display: inline-flex;
   align-items: center; justify-content: center; transition: transform 0.1s, box-shadow 0.1s;
   text-transform: uppercase; letter-spacing: 0.5px;
-  border-bottom: 4px solid #D4B5EC; position: relative;
+  border-bottom: 4px solid rgba(194,143,231,0.3); position: relative;
 }
-.gamification-theme .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(194, 143, 231, 0.15); }
+.gamification-theme .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
 .gamification-theme .btn-secondary:active { transform: translateY(2px); border-bottom-width: 2px; box-shadow: none; }
 
 .gamification-theme .card {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(194, 143, 231, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 8px 32px rgba(194, 143, 231, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .gamification-theme .card-surface {
-  background: rgba(249, 246, 255, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(194, 143, 231, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 4px 20px rgba(194, 143, 231, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .gamification-theme .glass-card {
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(194, 143, 231, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(194, 143, 231, 0.1), 0 2px 8px rgba(194, 143, 231, 0.06);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .gamification-theme .gradient-text {
