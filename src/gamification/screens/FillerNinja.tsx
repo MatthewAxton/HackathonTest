@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Zap, X, Crosshair } from 'lucide-react'
@@ -33,6 +33,7 @@ export default function FillerNinja() {
   const [phase, setPhase] = useState<'intro' | 'playing'>('intro')
   const [ready, setReady] = useState(false)
   const [silent, setSilent] = useState(false)
+  const [shaking, setShaking] = useState(false)
   const lastFillerTime = useRef(Date.now())
   const lastSpeechTime = useRef(Date.now())
   const { requestMic, stopMic } = useMicrophone()
@@ -56,6 +57,8 @@ export default function FillerNinja() {
     if (!ready) return
     const unsub = onFillerDetected((e) => {
       playFillerBuzz()
+      setShaking(true)
+      setTimeout(() => setShaking(false), 500)
       setFillers(getFillerCount())
       setLastFiller(e.word)
       setStreak(0) // reset streak on filler
@@ -147,9 +150,26 @@ export default function FillerNinja() {
       onReady={() => setPhase('playing')}
     />
   )
+  function highlightFillers(text: string): React.ReactNode {
+    if (!text) return null
+    const fillerWords = ['um', 'uh', 'uhh', 'umm', 'er', 'ah', 'hmm', 'like', 'you know', 'basically', 'right', 'so', 'actually', 'literally', 'i mean', 'kind of', 'sort of', 'well', 'okay so', 'honestly', 'yeah', 'just', 'i guess']
+    const pattern = fillerWords.map(w => w.replace(/\s+/g, '\\s+')).join('|')
+    const regex = new RegExp(`(\\b(?:${pattern})\\b)`, 'gi')
+    const parts = text.split(regex)
+    return parts.map((part, i) => {
+      const isF = regex.test(part)
+      regex.lastIndex = 0
+      if (isF) return <span key={i} style={{ color: '#FF4B4B', fontWeight: 800, background: 'rgba(255,75,75,0.15)', padding: '1px 4px', borderRadius: 4 }}>{part}</span>
+      return <span key={i}>{part}</span>
+    })
+  }
+
   const ninjaBarColor = streak > 20 ? '#58CC02' : streak > 10 ? '#C28FE7' : '#6B21A8'
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+    <motion.div
+      animate={shaking ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : { x: 0 }}
+      transition={shaking ? { duration: 0.5, ease: 'easeOut' } : { duration: 0.1 }}
+      style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
       {/* Floating filler word bubbles (ambient, decorative) */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
         {FILLER_TARGETS.map((word, i) => (
@@ -181,7 +201,7 @@ export default function FillerNinja() {
           <div style={{ maxWidth: 520, textAlign: 'center', fontSize: 16, fontWeight: 500, color: 'var(--muted)', lineHeight: 1.8, marginBottom: 12, minHeight: 60 }}>
             {silent ? (
               <motion.span animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ color: '#FCD34D', fontWeight: 700, fontSize: 18 }}>Keep talking!</motion.span>
-            ) : liveText ? liveText : <span style={{ opacity: 0.4 }}>Start speaking...</span>}
+            ) : liveText ? highlightFillers(liveText) : <span style={{ opacity: 0.4 }}>Start speaking...</span>}
           </div>
 
           {/* Filler badge with slash animation */}
@@ -251,6 +271,6 @@ export default function FillerNinja() {
         </div>
       </div>
       <BottomBanner left={<div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 14, padding: '8px 16px', fontSize: 13, fontWeight: 600 }}>{comboTier ? `${comboTier.label}! ${multiplier}x multiplier` : streak > 0 ? 'Build your streak!' : 'Keep going!'}</div>} center={<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><div style={{ fontSize: 22, fontWeight: 800 }}>{streak}s Streak</div><div style={{ fontSize: 11, fontWeight: 600, opacity: 0.7, textTransform: 'uppercase', letterSpacing: 0.5 }}>Filler-Free</div></div>} right={<><Zap size={14} /> Fillers: {fillers}</>} />
-    </div>
+    </motion.div>
   )
 }

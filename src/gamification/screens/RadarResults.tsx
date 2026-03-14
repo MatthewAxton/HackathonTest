@@ -1,9 +1,11 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Crosshair, Eye, Activity, Waves, Shield } from 'lucide-react'
 import { TopBanner } from '../components/Banner'
 import { RadarChart } from '../components/radar-chart'
 import { RadarOverlay } from '../components/radar-chart/RadarOverlay'
+import { MikeWithBubble } from '../components/Mike'
 import { useScanStore } from '../../store/scanStore'
 import { useRequireScan } from '../hooks/useRequireScan'
 
@@ -15,7 +17,7 @@ const AXIS_TIPS: Record<string, (score: number) => string> = {
   confidence: (s) => s >= 80 ? 'Strong eye contact and posture!' : s >= 50 ? 'Eye contact dropped in parts. Stay focused on camera.' : 'Eye contact and posture need work. Look at the camera more.',
   pacing: (s) => s >= 80 ? 'Great pace — clear and steady.' : s >= 50 ? 'Pace varied a bit. Try to stay in the 120-160 WPM zone.' : 'Pace was inconsistent. Practice speaking at a steady rhythm.',
   expression: (s) => s >= 80 ? 'Dynamic and expressive delivery!' : s >= 50 ? 'Good variation. Add more emphasis on key words.' : 'Delivery was flat. Vary your pitch to keep listeners engaged.',
-  composure: (s) => s >= 80 ? 'Calm and composed throughout!' : s >= 50 ? 'Some fidgeting detected. Try keeping hands still.' : 'Lots of movement. Plant your feet and keep hands steady.',
+  composure: (s) => s >= 80 ? 'Total poise — calm, composed, and in control!' : s >= 50 ? 'Good presence. Work on open body language and steady gestures.' : 'Body language needs work. Stand tall, open your stance, and gesture with purpose.',
 }
 
 function getGrade(overall: number): string {
@@ -45,6 +47,37 @@ export default function RadarResults() {
   const weakest = AXIS_KEYS.reduce((min, key) => scores[key] < scores[min] ? key : min, AXIS_KEYS[0])
   const weakestName = AXIS_NAMES[AXIS_KEYS.indexOf(weakest)]
 
+  const [displayScore, setDisplayScore] = useState(0)
+
+  useEffect(() => {
+    const target = Math.round(overall)
+    const duration = 1500
+    const startDelay = 500
+    let startTime: number | null = null
+    let rafId: number
+
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+
+    const tick = (now: number) => {
+      if (startTime === null) startTime = now
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      setDisplayScore(Math.round(easeOutCubic(progress) * target))
+      if (progress < 1) {
+        rafId = requestAnimationFrame(tick)
+      }
+    }
+
+    const delayId = setTimeout(() => {
+      rafId = requestAnimationFrame(tick)
+    }, startDelay)
+
+    return () => {
+      clearTimeout(delayId)
+      cancelAnimationFrame(rafId)
+    }
+  }, [overall])
+
   const axes = AXIS_KEYS.map((key, i) => ({
     name: AXIS_NAMES[i],
     score: Math.round(scores[key]),
@@ -58,9 +91,14 @@ export default function RadarResults() {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         <div style={{ width: '100%', maxWidth: 1060, display: 'flex', gap: 56, padding: '8px 48px', alignItems: 'center' }}>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }} style={{ width: 380, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--muted)', marginBottom: 8 }}>Let's work on <span style={{ color: 'var(--purple)', fontWeight: 700 }}>{weakestName}</span> first.</div>
+            <MikeWithBubble
+              text={`Here's your profile! Let's work on <strong style='color:var(--purple)'>${weakestName}</strong> first.`}
+              state="talking"
+              size={90}
+              delay={0.5}
+            />
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '8px 0' }}>
-              <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} style={{ fontSize: 64, fontWeight: 900, lineHeight: 1, background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{Math.round(overall)}</motion.span>
+              <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} style={{ fontSize: 64, fontWeight: 900, lineHeight: 1, background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{displayScore}</motion.span>
               <div><div style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)' }}>Speech<span style={{ color: 'var(--purple)' }}>MAX</span> Score</div><div style={{ display: 'inline-block', background: 'var(--surface)', color: 'var(--purple)', fontSize: 20, fontWeight: 800, padding: '4px 16px', borderRadius: 12, marginTop: 4 }}>{grade}</div></div>
             </div>
             {previousScores ? (

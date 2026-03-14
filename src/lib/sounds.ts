@@ -118,6 +118,12 @@ export function playGameComplete(): void {
   })
 }
 
+/** Talking blip for character reveal (Animal Crossing style): random 300-500Hz sine, 30ms */
+export function playTalkBlip(): void {
+  const freq = 300 + Math.random() * 200
+  playTone(freq, 30, 0.08)
+}
+
 /** Badge earned: 1200Hz->1600Hz sine, 250ms */
 export function playBadgeEarned(): void {
   if (!soundEnabled) return

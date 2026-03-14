@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { playTalkBlip } from '../../lib/sounds'
 
 interface MikeProps { state?: 'idle' | 'talking'; size?: number }
 
@@ -18,6 +19,37 @@ export function MikeSmall({ state = 'talking' }: { state?: 'idle' | 'talking' })
       <img src={state === 'talking' ? '/talking.gif' : '/IDLE.gif'} width={38} height={38} style={{ objectFit: 'contain' }} alt="Mike" />
     </div>
   )
+}
+
+function TalkingBubble({ text }: { text: string }) {
+  const plainText = text.replace(/<[^>]*>/g, '')
+  const [charIndex, setCharIndex] = useState(0)
+  const done = charIndex >= plainText.length
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    setCharIndex(0)
+    intervalRef.current = setInterval(() => {
+      setCharIndex(prev => {
+        const next = prev + 1
+        if (next <= plainText.length) {
+          const ch = plainText[prev]
+          if (ch && ch !== ' ') playTalkBlip()
+        }
+        if (next >= plainText.length) {
+          if (intervalRef.current) clearInterval(intervalRef.current)
+        }
+        return next
+      })
+    }, 40)
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [text, plainText])
+
+  if (done) {
+    return <span dangerouslySetInnerHTML={{ __html: text }} />
+  }
+
+  return <span>{plainText.slice(0, charIndex)}<span style={{ opacity: charIndex % 2 === 0 ? 1 : 0.3 }}>|</span></span>
 }
 
 interface MikeWithBubbleProps { text: string; state?: 'idle' | 'talking'; size?: number; delay?: number }
@@ -68,8 +100,9 @@ export function MikeWithBubble({ text, size = 80, delay = 1.0 }: MikeWithBubbleP
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.8, ease: smoothEaseOut, delay: 0.4 }}
               style={{ transformOrigin: 'top center', background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '2px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '14px 22px', fontSize: 16, fontWeight: 600, color: 'var(--text)', maxWidth: 360, textAlign: 'center', lineHeight: 1.4, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
-              dangerouslySetInnerHTML={{ __html: text }}
-            />
+            >
+              <TalkingBubble text={text} />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
