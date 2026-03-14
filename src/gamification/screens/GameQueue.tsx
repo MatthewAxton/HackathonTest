@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Flame, Crosshair, Eye, Activity, Waves, Shield } from 'lucide-react'
+import { Flame, Crosshair, Eye, Activity, Waves, Shield, Award, ChevronRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { TopBanner } from '../components/Banner'
 import { RadarChart } from '../components/radar-chart'
@@ -9,6 +9,7 @@ import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import type { GameType } from '../../analysis/types'
 import { useRequireScan } from '../hooks/useRequireScan'
+import BADGES from '../../lib/badges'
 
 const GAME_META: Record<GameType, { name: string; icon: LucideIcon; axis: string; time: string; desc: string; path: string }> = {
   'filler-ninja': { name: 'Filler Ninja', icon: Crosshair, axis: 'Clarity', time: '90s', desc: 'Speak without filler words. Every "um" and "like" gets slashed!', path: '/countdown?next=/filler-ninja' },
@@ -28,11 +29,16 @@ export default function GameQueue() {
   const getRecommendedGameOrder = useGameStore((s) => s.getRecommendedGameOrder)
   const getBestResult = useGameStore((s) => s.getBestResult)
   const streakDays = useSessionStore((s) => s.streakDays)
+  const earnedBadges = useSessionStore((s) => s.earnedBadges)
 
   const latestScores = getLatestScores()
   if (!hasScans) return null
   const scores = latestScores ?? { clarity: 42, confidence: 58, pacing: 61, expression: 70, composure: 74, overall: 67 }
   const gameOrder = getRecommendedGameOrder()
+
+  // Show up to 5 most recently earned badges
+  const earnedList = BADGES.filter(b => earnedBadges.has(b.id))
+  const topBadges = earnedList.slice(-5)
 
   const games = gameOrder.map((gameType, i) => {
     const meta = GAME_META[gameType]
@@ -57,19 +63,39 @@ export default function GameQueue() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          style={{ width: 280, flexShrink: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+          style={{ width: 340, flexShrink: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
         >
           <RadarChart
             scores={{ clarity: scores.clarity, confidence: scores.confidence, pacing: scores.pacing, expression: scores.expression, composure: scores.composure }}
-            size={200}
+            size={280}
             animated={false}
           />
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} style={{ fontSize: 48, fontWeight: 800, lineHeight: 1, marginTop: 8, background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{Math.round(scores.overall)}</motion.div>
           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)', marginTop: 4 }}>Your Score</div>
         </motion.div>
 
-        {/* RIGHT — Game Library */}
+        {/* RIGHT — Badges + Game Library */}
         <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Top Awards */}
+          {topBadges.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '12px 16px' }}
+            >
+              <Award size={18} color="var(--purple)" style={{ flexShrink: 0 }} />
+              <div style={{ display: 'flex', gap: 8, flex: 1 }}>
+                {topBadges.map(b => (
+                  <div key={b.id} title={`${b.name}: ${b.description}`} style={{ background: 'rgba(194,143,231,0.12)', border: '1px solid rgba(194,143,231,0.25)', borderRadius: 10, padding: '4px 12px', fontSize: 12, fontWeight: 700, color: 'var(--purple)', whiteSpace: 'nowrap' }}>{b.name}</div>
+                ))}
+              </div>
+              <div onClick={() => nav('/progress')} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--muted)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                {earnedList.length}/{BADGES.length} <ChevronRight size={14} />
+              </div>
+            </motion.div>
+          )}
+
           <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Training Games</div>
           {games.map((g, i) => (
             <motion.div key={g.name}

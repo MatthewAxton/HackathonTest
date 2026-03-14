@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Flame, Target, Gamepad2, Trophy } from 'lucide-react'
+import { Flame, Target, Gamepad2, Trophy, Share2 } from 'lucide-react'
 import { TopBanner } from '../components/Banner'
 import { RadarChart } from '../components/radar-chart'
 import { RadarOverlay } from '../components/radar-chart/RadarOverlay'
@@ -147,6 +147,18 @@ export default function Progress() {
               })}
             </div>
           </motion.div>
+
+          {/* Share Results */}
+          <motion.button
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="btn-primary"
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            onClick={() => {/* TODO: wire share functionality */}}
+          >
+            <Share2 size={16} /> Share Results
+          </motion.button>
 
         </div>
       </div>
