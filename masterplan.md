@@ -53,11 +53,11 @@ Sprint 1 (Data Integrity)     Sprint 2 (Dark Theme)
 
 ---
 
-## Sprint 1: Data Integrity (Wire Everything Real)
+## Sprint 1: Data Integrity (Wire Everything Real) [COMPLETE]
 
 > Without real data flowing end-to-end, the app is a tech demo with hardcoded numbers. This sprint makes every score genuine.
 
-### 1.1 — Add localStorage persistence to all Zustand stores [M]
+### 1.1 — Add localStorage persistence to all Zustand stores [DONE]
 
 **Why:** Demo judges will refresh the page. All progress vanishes.
 
@@ -74,7 +74,7 @@ Sprint 1 (Data Integrity)     Sprint 2 (Dark Theme)
 
 ---
 
-### 1.2 — Wire real sensor data into RadarScan [L]
+### 1.2 — Wire real sensor data into RadarScan [DONE]
 
 **Why:** The ENTIRE radar scoring system is meaningless — 5 of 7 inputs are hardcoded.
 
@@ -121,7 +121,7 @@ CameraFeed already has `const videoRef = useRef<HTMLVideoElement>(null)`. Don't 
 
 ---
 
-### 1.3 — Wire real game metrics into ScoreCard [M]
+### 1.3 — Wire real game metrics into ScoreCard [DONE]
 
 **Why:** Games compute real scores but never save them. ScoreCard shows hardcoded mock data.
 
