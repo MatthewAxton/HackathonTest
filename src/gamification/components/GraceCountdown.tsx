@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { playCountdownBeep, playGoTone } from '../../lib/sounds'
 
 interface GraceCountdownProps {
   onReady: () => void
@@ -16,9 +17,11 @@ export function GraceCountdown({ onReady, prompt, promptLabel }: GraceCountdownP
   useEffect(() => {
     if (done) return
     if (count === 0) {
+      playGoTone()
       setTimeout(() => { setDone(true); onReady() }, 800)
       return
     }
+    playCountdownBeep()
     const t = setTimeout(() => setCount(c => c - 1), 1000)
     return () => clearTimeout(t)
   }, [count, done, onReady])

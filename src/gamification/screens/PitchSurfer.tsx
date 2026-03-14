@@ -12,6 +12,7 @@ import { computeSimpleGameScore } from '../../analysis/scoring/gameScorer'
 import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRequireScan } from '../hooks/useRequireScan'
+import { playGameComplete, playBadgeEarned } from '../../lib/sounds'
 
 export default function PitchSurfer() {
   const hasScans = useRequireScan()
@@ -102,7 +103,9 @@ export default function PitchSurfer() {
           useGameStore.getState().addGameResult({ gameType: 'pitch-surfer', score, metrics, timestamp: Date.now() })
           useSessionStore.getState().markPromptUsed(prompt)
           useSessionStore.getState().recordGame('pitch-surfer')
-          useSessionStore.getState().checkBadges()
+          const badges = useSessionStore.getState().checkBadges()
+          playGameComplete()
+          if (badges && badges.length > 0) playBadgeEarned()
           nav('/score/pitch')
           return 0
         }

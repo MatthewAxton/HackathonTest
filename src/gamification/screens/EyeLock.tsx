@@ -12,6 +12,7 @@ import { computeSimpleGameScore } from '../../analysis/scoring/gameScorer'
 import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRequireScan } from '../hooks/useRequireScan'
+import { playGameComplete, playBadgeEarned } from '../../lib/sounds'
 
 const QUALITY_COLORS = { good: '#58CC02', weak: '#F5A623', lost: '#FF4B4B' }
 
@@ -62,7 +63,9 @@ export default function EyeLock() {
         useGameStore.getState().addGameResult({ gameType: 'eye-lock', score, metrics, timestamp: Date.now() })
         useSessionStore.getState().markPromptUsed(prompt)
         useSessionStore.getState().recordGame('eye-lock')
-        useSessionStore.getState().checkBadges()
+        const badges = useSessionStore.getState().checkBadges()
+        playGameComplete()
+        if (badges && badges.length > 0) playBadgeEarned()
         nav('/score/eyelock')
         return 0
       }

@@ -14,6 +14,7 @@ import { initGazeEngine, startGazeTracking, stopGazeTracking, onGazeReading } fr
 import { initPoseTracker, startPoseTracking, stopPoseTracking, onPoseFrame } from '../../analysis/mediapipe/poseTracker'
 import { useScanStore } from '../../store/scanStore'
 import { useSessionStore } from '../../store/sessionStore'
+import { playScanStart, playScanComplete, playBadgeEarned } from '../../lib/sounds'
 
 function computeStdDev(values: number[]): number {
   if (values.length < 2) return 0
@@ -67,6 +68,7 @@ export default function RadarScan() {
     startWpmTracking()
     startAudioAnalysis(stream)
     startScan()
+    playScanStart()
   }, [startScan])
 
   // Subscribe to sensor callbacks
@@ -143,8 +145,10 @@ export default function RadarScan() {
           fidgetCount: fidgets.current,
         })
         completeScan()
+        playScanComplete()
         useSessionStore.getState().recordScan()
-        useSessionStore.getState().checkBadges()
+        const badges = useSessionStore.getState().checkBadges()
+        if (badges && badges.length > 0) playBadgeEarned()
 
         setPhase('analyzing')
         return 0

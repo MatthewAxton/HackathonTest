@@ -11,6 +11,7 @@ import { computeSimpleGameScore } from '../../analysis/scoring/gameScorer'
 import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRequireScan } from '../hooks/useRequireScan'
+import { playGameComplete, playBadgeEarned } from '../../lib/sounds'
 
 export default function StatueMode() {
   const hasScans = useRequireScan()
@@ -77,7 +78,9 @@ export default function StatueMode() {
         useGameStore.getState().addGameResult({ gameType: 'statue-mode', score, metrics, timestamp: Date.now() })
         useSessionStore.getState().markPromptUsed(prompt)
         useSessionStore.getState().recordGame('statue-mode')
-        useSessionStore.getState().checkBadges()
+        const badges = useSessionStore.getState().checkBadges()
+        playGameComplete()
+        if (badges && badges.length > 0) playBadgeEarned()
         nav('/score/statue')
         return 0
       }

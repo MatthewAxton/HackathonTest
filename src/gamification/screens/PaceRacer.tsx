@@ -12,6 +12,7 @@ import { computeSimpleGameScore } from '../../analysis/scoring/gameScorer'
 import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRequireScan } from '../hooks/useRequireScan'
+import { playGameComplete, playBadgeEarned } from '../../lib/sounds'
 
 export default function PaceRacer() {
   const hasScans = useRequireScan()
@@ -63,7 +64,9 @@ export default function PaceRacer() {
           useGameStore.getState().addGameResult({ gameType: 'pace-racer', score, metrics, timestamp: Date.now() })
           useSessionStore.getState().markPromptUsed(prompt)
           useSessionStore.getState().recordGame('pace-racer')
-          useSessionStore.getState().checkBadges()
+          const badges = useSessionStore.getState().checkBadges()
+          playGameComplete()
+          if (badges && badges.length > 0) playBadgeEarned()
           nav('/score/pace')
           return 0
         }

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Lightbulb, Crosshair, Eye, Activity, Waves, Shield } from 'lucide-react'
 import { TopBanner, BottomBanner } from '../components/Banner'
 import { Mike } from '../components/Mike'
+import { playCountdownBeep, playGoTone } from '../../lib/sounds'
 
 const gameInfo: Record<string, { title: string; axis: string; duration: string; icon: any; steps: string[]; goal: string; tip: string; message: string; countdownMsg: string }> = {
   '/filler-ninja': { title: 'Filler Ninja', axis: 'Clarity', duration: '90s', icon: Crosshair, steps: ['A prompt will appear — speak about it naturally', 'Every filler word ("um", "like", "basically") gets flagged in red', 'Replace fillers with a silent pause to build your streak'], goal: 'Survive 90 seconds with as few fillers as possible', tip: 'Silence sounds more confident than fillers!', message: "You've got this! Remember — pause, don't fill.", countdownMsg: "Here we go!" },
@@ -51,11 +52,13 @@ export default function Countdown() {
     setMikeState('talking')
     setBubbleText(String(count))
     if (count === 0) {
+      playGoTone()
       setBubbleText('GO!')
       setPhase('go')
       setTimeout(() => nav(target, { replace: true }), 800)
       return
     }
+    playCountdownBeep()
     const t = setTimeout(() => setCount(c => c - 1), 1000)
     return () => clearTimeout(t)
   }, [count, phase, nav, target])

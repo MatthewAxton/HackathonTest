@@ -12,6 +12,7 @@ import { computeSimpleGameScore } from '../../analysis/scoring/gameScorer'
 import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRequireScan } from '../hooks/useRequireScan'
+import { playFillerBuzz, playGameComplete, playBadgeEarned } from '../../lib/sounds'
 
 const FILLER_TARGETS = ['um', 'uh', 'like', 'so', 'you know', 'basically', 'actually', 'right']
 const FLOAT_TOPS = [10, 22, 35, 48, 55, 65, 73, 80]
@@ -45,6 +46,7 @@ export default function FillerNinja() {
   useEffect(() => {
     if (!ready) return
     const unsub = onFillerDetected((e) => {
+      playFillerBuzz()
       setFillers(getFillerCount())
       setLastFiller(e.word)
       setStreak(0) // reset streak on filler
@@ -78,7 +80,9 @@ export default function FillerNinja() {
           useGameStore.getState().addGameResult({ gameType: 'filler-ninja', score, metrics, timestamp: Date.now() })
           useSessionStore.getState().markPromptUsed(prompt)
           useSessionStore.getState().recordGame('filler-ninja')
-          useSessionStore.getState().checkBadges()
+          const badges = useSessionStore.getState().checkBadges()
+          playGameComplete()
+          if (badges && badges.length > 0) playBadgeEarned()
           nav('/score/filler')
           return 0
         }
