@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { Zap } from 'lucide-react'
 import { TopBanner, BottomBanner } from '../components/Banner'
 import { AudioWave } from '../components/AudioWave'
@@ -86,8 +87,17 @@ export default function StatueMode() {
   }, [nav, ready])
 
   if (!hasScans) return null
-  const headColor = headStatus === 'stable' ? 'var(--green, #58CC02)' : 'var(--red, #FF4B4B)'
-  const handColor = handStatus === 'stable' ? 'var(--green, #58CC02)' : 'var(--red, #FF4B4B)'
+
+  const heatColor = (intensity: number) => intensity < 0.3 ? '#58CC02' : intensity < 0.6 ? '#FCD34D' : '#FF4B4B'
+  const headIntensity = headStatus === 'stable' ? 0.1 : 0.9
+  const handIntensity = handStatus === 'stable' ? 0.1 : 0.9
+  const torsoIntensity = 1 - composureScore / 100
+  const headHeat = heatColor(headIntensity)
+  const handHeat = heatColor(handIntensity)
+  const torsoHeat = heatColor(torsoIntensity)
+  const headMoving = headStatus !== 'stable'
+  const handMoving = handStatus !== 'stable'
+  const torsoMoving = torsoIntensity >= 0.3
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
@@ -100,24 +110,50 @@ export default function StatueMode() {
               style={{ height: 'calc(100vh - 260px)', maxHeight: 460 }}
               overlay={
                 <svg style={{ position: 'absolute', inset: 30, pointerEvents: 'none' }} viewBox="0 0 580 300">
-                  <rect x={230} y={5} width={120} height={70} rx={8} fill={headStatus === 'stable' ? 'rgba(88,204,2,0.06)' : 'rgba(255,75,75,0.06)'} stroke={headColor} strokeWidth={1} strokeDasharray={4} />
-                  <text x={290} y={84} textAnchor="middle" fontFamily="Nunito" fontSize={10} fontWeight={600} fill={headColor}>Head: {headStatus === 'stable' ? 'Stable' : 'Moving!'}</text>
-                  <rect x={200} y={90} width={180} height={50} rx={8} fill="rgba(88,204,2,0.06)" stroke="var(--green, #58CC02)" strokeWidth={1} strokeDasharray={4} />
-                  <text x={290} y={150} textAnchor="middle" fontFamily="Nunito" fontSize={10} fontWeight={600} fill="var(--green, #58CC02)">Shoulders: Stable</text>
-                  <rect x={120} y={140} width={100} height={70} rx={8} fill={handStatus === 'stable' ? 'rgba(88,204,2,0.06)' : 'rgba(255,75,75,0.06)'} stroke={handColor} strokeWidth={1} strokeDasharray={4} />
-                  <text x={170} y={220} textAnchor="middle" fontFamily="Nunito" fontSize={10} fontWeight={600} fill={handColor}>Left Hand: {handStatus === 'stable' ? 'Stable' : 'Moving!'}</text>
-                  <line x1={290} y1={40} x2={290} y2={110} stroke="var(--purple, #C28FE7)" strokeWidth={2} opacity={0.4} />
-                  <line x1={290} y1={110} x2={230} y2={160} stroke="var(--purple, #C28FE7)" strokeWidth={2} opacity={0.4} />
-                  <line x1={290} y1={110} x2={350} y2={160} stroke="var(--purple, #C28FE7)" strokeWidth={2} opacity={0.4} />
-                  <line x1={230} y1={160} x2={170} y2={180} stroke={handColor} strokeWidth={2} opacity={0.5} />
-                  <line x1={350} y1={160} x2={405} y2={180} stroke="var(--purple, #C28FE7)" strokeWidth={2} opacity={0.4} />
+                  <defs>
+                    <filter id="glow">
+                      <feGaussianBlur stdDeviation="4" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                  </defs>
+
+                  {/* Head */}
+                  <motion.g filter="url(#glow)" animate={headMoving ? { opacity: [0.6, 1, 0.6] } : { opacity: 1 }} transition={headMoving ? { duration: 0.8, repeat: Infinity } : undefined}>
+                    <ellipse cx={290} cy={40} rx={25} ry={28} fill={`${headHeat}20`} stroke={headHeat} strokeWidth={2} />
+                  </motion.g>
+
+                  {/* Torso */}
+                  <motion.g filter="url(#glow)" animate={torsoMoving ? { opacity: [0.6, 1, 0.6] } : { opacity: 1 }} transition={torsoMoving ? { duration: 0.8, repeat: Infinity } : undefined}>
+                    <rect x={260} y={72} width={60} height={85} rx={10} fill={`${torsoHeat}20`} stroke={torsoHeat} strokeWidth={2} />
+                  </motion.g>
+
+                  {/* Left arm */}
+                  <motion.g filter="url(#glow)" animate={handMoving ? { opacity: [0.6, 1, 0.6] } : { opacity: 1 }} transition={handMoving ? { duration: 0.8, repeat: Infinity } : undefined}>
+                    <path d="M258,75 L200,130 L180,190" fill="none" stroke={handHeat} strokeWidth={4} strokeLinecap="round" />
+                  </motion.g>
+
+                  {/* Right arm (always green — no right-hand data) */}
+                  <g filter="url(#glow)">
+                    <path d="M322,75 L380,130 L400,190" fill="none" stroke="#58CC02" strokeWidth={4} strokeLinecap="round" />
+                  </g>
+
+                  {/* Left leg */}
+                  <g filter="url(#glow)">
+                    <path d="M272,160 L255,230 L248,280" fill="none" stroke="#58CC02" strokeWidth={4} strokeLinecap="round" />
+                  </g>
+
+                  {/* Right leg */}
+                  <g filter="url(#glow)">
+                    <path d="M308,160 L325,230 L332,280" fill="none" stroke="#58CC02" strokeWidth={4} strokeLinecap="round" />
+                  </g>
                 </svg>
               }
             />
           </div>
           <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--green, #58CC02)' }} /> Stable</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--red, #FF4B4B)' }} /> Moving</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#58CC02' }} /> Stable</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#FCD34D' }} /> Moderate</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#FF4B4B' }} /> Excess</span>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted, #777)' }}>Alerts: {movementAlerts}</span>
           </div>
           <div className="card" style={{ width: '100%', maxWidth: 600, textAlign: 'center', padding: '14px 28px', marginBottom: 8 }}>
