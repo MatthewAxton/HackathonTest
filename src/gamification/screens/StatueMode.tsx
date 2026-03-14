@@ -1,10 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Zap, Shield } from 'lucide-react'
+import { Zap, Shield, ArrowLeft, AlertTriangle } from 'lucide-react'
 import GameIntro from '../components/GameIntro'
-import { TopBanner, BottomBanner } from '../components/Banner'
-import { AudioWave } from '../components/AudioWave'
 import { CameraFeed } from '../components/CameraFeed'
 import { initPoseTracker, startPoseTracking, stopPoseTracking, onPoseFrame, type PoseFrame } from '../../analysis/mediapipe/poseTracker'
 import { computeSimpleGameScore } from '../../analysis/scoring/gameScorer'
@@ -12,6 +10,15 @@ import { useGameStore } from '../../store/gameStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRequireScan } from '../hooks/useRequireScan'
 import { playGameComplete, playBadgeEarned } from '../../lib/sounds'
+
+const glass: React.CSSProperties = {
+  background: 'rgba(0,0,0,0.5)',
+  backdropFilter: 'blur(16px)',
+  WebkitBackdropFilter: 'blur(16px)',
+  borderRadius: 14,
+  padding: '10px 16px',
+  border: '1px solid rgba(255,255,255,0.1)',
+}
 
 export default function StatueMode() {
   const hasScans = useRequireScan()
@@ -142,107 +149,176 @@ export default function StatueMode() {
   const handMoving = handStatus !== 'stable'
   const torsoMoving = torsoIntensity >= 0.3
 
+  const difficultyColor = difficulty === 'hard' ? '#FF4B4B' : difficulty === 'medium' ? '#FCD34D' : '#58CC02'
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', background: '#000' }}>
+      {/* Fullscreen camera with skeleton overlay */}
+      <CameraFeed
+        style={{ width: '100%', height: '100%', maxWidth: 'none', maxHeight: 'none', border: 'none', borderRadius: 0 }}
+        overlay={
+          bodyLandmarks ? (() => {
+            const b = bodyLandmarks
+            // Convert normalized coords to percentage positions (mirrored for camera)
+            const px = (p: { x: number; y: number }) => `${(1 - p.x) * 100}%`
+            const py = (p: { x: number; y: number }) => `${p.y * 100}%`
+
+            const Joint = ({ pos, color, pulse }: { pos: { x: number; y: number }; color: string; pulse: boolean }) => (
+              <motion.div
+                animate={pulse ? { boxShadow: [`0 0 8px ${color}80`, `0 0 20px ${color}`, `0 0 8px ${color}80`] } : {}}
+                transition={pulse ? { duration: 1, repeat: Infinity } : undefined}
+                style={{
+                  position: 'absolute', left: px(pos), top: py(pos),
+                  width: 14, height: 14, marginLeft: -7, marginTop: -7,
+                  borderRadius: '50%', background: color, border: '2px solid rgba(255,255,255,0.6)',
+                  boxShadow: `0 0 8px ${color}80`,
+                  transition: 'background 0.3s',
+                }}
+              />
+            )
+
+            const Bone = ({ from, to, color }: { from: { x: number; y: number }; to: { x: number; y: number }; color: string }) => (
+              <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+                <line
+                  x1={`${(1 - from.x) * 100}%`} y1={`${from.y * 100}%`}
+                  x2={`${(1 - to.x) * 100}%`} y2={`${to.y * 100}%`}
+                  stroke={color} strokeWidth={3} strokeLinecap="round"
+                  style={{ filter: `drop-shadow(0 0 4px ${color}60)`, transition: 'stroke 0.3s' }}
+                />
+              </svg>
+            )
+
+            return (
+              <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                {/* Bones */}
+                <Bone from={b.leftShoulder} to={b.rightShoulder} color={torsoHeat} />
+                <Bone from={b.leftShoulder} to={b.leftElbow} color={handHeat} />
+                <Bone from={b.leftElbow} to={b.leftWrist} color={handHeat} />
+                <Bone from={b.rightShoulder} to={b.rightElbow} color={handHeat} />
+                <Bone from={b.rightElbow} to={b.rightWrist} color={handHeat} />
+                <Bone from={b.leftShoulder} to={b.leftHip} color={torsoHeat} />
+                <Bone from={b.rightShoulder} to={b.rightHip} color={torsoHeat} />
+                <Bone from={b.leftHip} to={b.rightHip} color={torsoHeat} />
+                {/* Joints */}
+                <Joint pos={b.nose} color={headHeat} pulse={headMoving} />
+                <Joint pos={b.leftShoulder} color={torsoHeat} pulse={torsoMoving} />
+                <Joint pos={b.rightShoulder} color={torsoHeat} pulse={torsoMoving} />
+                <Joint pos={b.leftElbow} color={handHeat} pulse={handMoving} />
+                <Joint pos={b.rightElbow} color={handHeat} pulse={handMoving} />
+                <Joint pos={b.leftWrist} color={handHeat} pulse={handMoving} />
+                <Joint pos={b.rightWrist} color={handHeat} pulse={handMoving} />
+                <Joint pos={b.leftHip} color={torsoHeat} pulse={false} />
+                <Joint pos={b.rightHip} color={torsoHeat} pulse={false} />
+              </div>
+            )
+          })() : undefined
+        }
+      />
+
+      {/* Model loading overlay */}
       {modelLoading && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: 'rgba(5,5,8,0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, pointerEvents: 'none' }}>
           <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }} style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid rgba(194,143,231,0.2)', borderTopColor: '#C28FE7' }} />
           <div style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>Loading pose tracking model...</div>
         </div>
       )}
-      <TopBanner backTo="/queue" title="Statue Mode" center={<span style={{ background: 'rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: 12, fontSize: 15, fontWeight: 800 }}>0:{time.toString().padStart(2, '0')}</span>} right={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700 }}><Zap size={14} /> {composureScore}</span><span style={{ background: `${difficulty === 'hard' ? '#FF4B4B' : difficulty === 'medium' ? '#FCD34D' : '#58CC02'}30`, color: difficulty === 'hard' ? '#FF4B4B' : difficulty === 'medium' ? '#FCD34D' : '#58CC02', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 8, textTransform: 'uppercase' }}>{difficulty}</span></div>} />
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <div style={{ width: '100%', maxWidth: 960, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 40px' }}>
-          <div style={{ width: '100%', marginBottom: 8, boxShadow: '0 4px 20px rgba(194,143,231,0.08)', borderRadius: 20 }}>
-            <CameraFeed
-              style={{ height: 'calc(100vh - 260px)', maxHeight: 460 }}
-              overlay={
-                bodyLandmarks ? (() => {
-                  const b = bodyLandmarks
-                  // Convert normalized coords to percentage positions (mirrored for camera)
-                  const px = (p: { x: number; y: number }) => `${(1 - p.x) * 100}%`
-                  const py = (p: { x: number; y: number }) => `${p.y * 100}%`
 
-                  const Joint = ({ pos, color, pulse }: { pos: { x: number; y: number }; color: string; pulse: boolean }) => (
-                    <motion.div
-                      animate={pulse ? { boxShadow: [`0 0 8px ${color}80`, `0 0 20px ${color}`, `0 0 8px ${color}80`] } : {}}
-                      transition={pulse ? { duration: 1, repeat: Infinity } : undefined}
-                      style={{
-                        position: 'absolute', left: px(pos), top: py(pos),
-                        width: 14, height: 14, marginLeft: -7, marginTop: -7,
-                        borderRadius: '50%', background: color, border: '2px solid rgba(255,255,255,0.6)',
-                        boxShadow: `0 0 8px ${color}80`,
-                        transition: 'background 0.3s',
-                      }}
-                    />
-                  )
-
-                  const Bone = ({ from, to, color }: { from: { x: number; y: number }; to: { x: number; y: number }; color: string }) => (
-                    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
-                      <line
-                        x1={`${(1 - from.x) * 100}%`} y1={`${from.y * 100}%`}
-                        x2={`${(1 - to.x) * 100}%`} y2={`${to.y * 100}%`}
-                        stroke={color} strokeWidth={3} strokeLinecap="round"
-                        style={{ filter: `drop-shadow(0 0 4px ${color}60)`, transition: 'stroke 0.3s' }}
-                      />
-                    </svg>
-                  )
-
-                  return (
-                    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-                      {/* Bones */}
-                      <Bone from={b.leftShoulder} to={b.rightShoulder} color={torsoHeat} />
-                      <Bone from={b.leftShoulder} to={b.leftElbow} color={handHeat} />
-                      <Bone from={b.leftElbow} to={b.leftWrist} color={handHeat} />
-                      <Bone from={b.rightShoulder} to={b.rightElbow} color={handHeat} />
-                      <Bone from={b.rightElbow} to={b.rightWrist} color={handHeat} />
-                      <Bone from={b.leftShoulder} to={b.leftHip} color={torsoHeat} />
-                      <Bone from={b.rightShoulder} to={b.rightHip} color={torsoHeat} />
-                      <Bone from={b.leftHip} to={b.rightHip} color={torsoHeat} />
-                      {/* Joints */}
-                      <Joint pos={b.nose} color={headHeat} pulse={headMoving} />
-                      <Joint pos={b.leftShoulder} color={torsoHeat} pulse={torsoMoving} />
-                      <Joint pos={b.rightShoulder} color={torsoHeat} pulse={torsoMoving} />
-                      <Joint pos={b.leftElbow} color={handHeat} pulse={handMoving} />
-                      <Joint pos={b.rightElbow} color={handHeat} pulse={handMoving} />
-                      <Joint pos={b.leftWrist} color={handHeat} pulse={handMoving} />
-                      <Joint pos={b.rightWrist} color={handHeat} pulse={handMoving} />
-                      <Joint pos={b.leftHip} color={torsoHeat} pulse={false} />
-                      <Joint pos={b.rightHip} color={torsoHeat} pulse={false} />
-                    </div>
-                  )
-                })() : undefined
-              }
-            />
-          </div>
-          <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#58CC02' }} /> Stable</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#FCD34D' }} /> Moderate</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#FF4B4B' }} /> Excess</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted, #777)' }}>Alerts: {movementAlerts}</span>
-          </div>
-          <div className="card" style={{ width: '100%', maxWidth: 600, textAlign: 'center', padding: '14px 28px', marginBottom: 8 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 6 }}>Composure Challenge</div>
-            <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.4 }}>{prompt}</div>
-          </div>
-          <AudioWave />
-          {time < gameDuration - 10 && (
-            <motion.button
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              onClick={finishGame}
-              style={{ marginTop: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 14, padding: '10px 28px', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}
-            >
-              Finish Early
-            </motion.button>
-          )}
+      {/* Top-left: Back + Title */}
+      <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div
+          onClick={() => nav('/queue')}
+          style={{ ...glass, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: 600 }}
+        >
+          <ArrowLeft size={16} />
+          Back
+        </div>
+        <div style={{ ...glass, display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.9)', fontSize: 15, fontWeight: 700 }}>
+          <Shield size={16} style={{ color: '#c28fe7' }} />
+          Statue Mode
         </div>
       </div>
-      <BottomBanner left={<div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 14, padding: '8px 16px', fontSize: 13, fontWeight: 600 }}>{headMoving && handMoving ? 'Head and hands moving — freeze everything!'
-              : headMoving ? 'Head moving! Keep it still and centered.'
-              : handMoving ? 'Hands fidgeting — clasp them or hold at sides.'
-              : torsoMoving ? 'Body swaying — plant your feet firmly.'
-              : 'Great composure! Stay steady.'}</div>} center={<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><div style={{ fontSize: 22, fontWeight: 800 }}>{composureScore}</div><div style={{ fontSize: 11, fontWeight: 600, opacity: 0.7, textTransform: 'uppercase', letterSpacing: 0.5 }}>Composure Score</div></div>} right={<><Zap size={14} /> {movementAlerts} alerts</>} />
+
+      {/* Top-center: Timer */}
+      <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 20 }}>
+        <div style={{ ...glass, fontSize: 28, fontWeight: 800, color: time <= 10 ? '#FF4B4B' : 'rgba(255,255,255,0.95)', fontVariantNumeric: 'tabular-nums', padding: '8px 24px', letterSpacing: 1 }}>
+          0:{time.toString().padStart(2, '0')}
+        </div>
+      </div>
+
+      {/* Top-right: Composure score + difficulty */}
+      <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ ...glass, display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.9)', fontSize: 15, fontWeight: 700 }}>
+          <Zap size={15} style={{ color: '#c28fe7' }} />
+          {composureScore}
+        </div>
+        <div style={{
+          ...glass,
+          background: `${difficultyColor}20`,
+          color: difficultyColor,
+          fontSize: 12,
+          fontWeight: 700,
+          textTransform: 'uppercase' as const,
+          letterSpacing: 0.5,
+          padding: '8px 14px',
+        }}>
+          {difficulty}
+        </div>
+      </div>
+
+      {/* Bottom-center: Legend + Prompt */}
+      <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 20, width: '90%', maxWidth: 600, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {/* Status feedback */}
+        <div style={{ ...glass, marginBottom: 10, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)', textAlign: 'center', width: 'fit-content' }}>
+          {headMoving && handMoving ? 'Head and hands moving — freeze everything!'
+            : headMoving ? 'Head moving! Keep it still and centered.'
+            : handMoving ? 'Hands fidgeting — clasp them or hold at sides.'
+            : torsoMoving ? 'Body swaying — plant your feet firmly.'
+            : 'Great composure! Stay steady.'}
+        </div>
+        {/* Legend row */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#58CC02', display: 'inline-block' }} /> Stable
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#FCD34D', display: 'inline-block' }} /> Moderate
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#FF4B4B', display: 'inline-block' }} /> Excess
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
+            <AlertTriangle size={13} /> {movementAlerts} alerts
+          </span>
+        </div>
+        {/* Prompt card */}
+        <div style={{ ...glass, width: '100%', textAlign: 'center', padding: '14px 28px' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: 0.5, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Composure Challenge</div>
+          <div style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.4, color: 'rgba(255,255,255,0.9)' }}>{prompt}</div>
+        </div>
+      </div>
+
+      {/* Bottom-right: Finish Early */}
+      {time < gameDuration - 10 && (
+        <motion.button
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={finishGame}
+          style={{
+            position: 'absolute',
+            bottom: 20,
+            right: 16,
+            zIndex: 20,
+            ...glass,
+            cursor: 'pointer',
+            fontSize: 14,
+            fontWeight: 700,
+            color: 'rgba(255,255,255,0.5)',
+            background: 'rgba(0,0,0,0.6)',
+          }}
+        >
+          Finish Early
+        </motion.button>
+      )}
     </div>
   )
 }

@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Flame, Crosshair, Eye, Activity, Waves, Shield, Award, ChevronRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -47,6 +48,17 @@ export default function GameQueue() {
     return { ...meta, gameType, score: Math.round(scores[axisKey]), bestScore: best?.score, priority: i === 0 }
   })
 
+  const weakestGame = games[0]
+  const TIPS = [
+    `Your weakest area is **${weakestGame?.axis}**. Start with ${weakestGame?.name} to improve it!`,
+    `Try to beat your personal best. Consistency is key — play every day!`,
+    `Pause instead of using filler words. Silence sounds confident.`,
+    `Look at a spot near the camera lens to maintain natural eye contact.`,
+    `Breathe between sentences to control your pace. Don't rush!`,
+  ]
+  const [tipIdx] = useState(() => Math.floor(Math.random() * TIPS.length))
+  const [showTip, setShowTip] = useState(true)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
       <TopBanner title={<>Speech<span style={{ color: 'var(--purple)' }}>MAX</span></>} showBack={false}
@@ -63,13 +75,15 @@ export default function GameQueue() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          style={{ width: 340, flexShrink: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+          style={{ width: 360, flexShrink: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}
         >
+          <div style={{ overflow: 'visible', width: '100%', display: 'flex', justifyContent: 'center' }}>
           <RadarChart
             scores={{ clarity: scores.clarity, confidence: scores.confidence, pacing: scores.pacing, expression: scores.expression, composure: scores.composure }}
-            size={280}
+            size={240}
             animated={false}
           />
+          </div>
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} style={{ fontSize: 48, fontWeight: 800, lineHeight: 1, marginTop: 8, background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{Math.round(scores.overall)}</motion.div>
           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)', marginTop: 4 }}>Your Score</div>
         </motion.div>
@@ -143,6 +157,37 @@ export default function GameQueue() {
           ))}
         </div>
       </div>
+
+      {/* Mascot tip popup */}
+      <AnimatePresence>
+        {showTip && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 1 }}
+            style={{
+              position: 'fixed', bottom: 20, right: 20, zIndex: 50,
+              display: 'flex', alignItems: 'flex-end', gap: 10, maxWidth: 380,
+            }}
+          >
+            <img src="/IDLE.gif" alt="Mike" style={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid rgba(194,143,231,0.3)', flexShrink: 0 }} />
+            <div style={{
+              background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.12)', borderRadius: 16,
+              padding: '14px 18px', position: 'relative',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            }}>
+              <button onClick={() => setShowTip(false)} style={{
+                position: 'absolute', top: 6, right: 8, background: 'none', border: 'none',
+                color: 'rgba(255,255,255,0.3)', fontSize: 16, cursor: 'pointer', lineHeight: 1,
+              }}>×</button>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, paddingRight: 16 }}
+                dangerouslySetInnerHTML={{ __html: TIPS[tipIdx].replace(/\*\*(.*?)\*\*/g, '<strong style="color:#C28FE7">$1</strong>') }} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

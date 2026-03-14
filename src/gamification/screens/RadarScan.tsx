@@ -2,8 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Activity, Eye } from 'lucide-react'
-import { TopBanner } from '../components/Banner'
-import { AudioWave } from '../components/AudioWave'
 import { CameraFeed } from '../components/CameraFeed'
 import { startTranscription, stopTranscription, onTranscript, getTranscriberStatus } from '../../analysis/speech/transcriber'
 import { startFillerDetection, stopFillerDetection, getFillerCount } from '../../analysis/speech/fillerDetector'
@@ -20,6 +18,15 @@ function computeStdDev(values: number[]): number {
   const mean = values.reduce((a, b) => a + b, 0) / values.length
   const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length
   return Math.sqrt(variance)
+}
+
+const glassCard: React.CSSProperties = {
+  background: 'rgba(0,0,0,0.5)',
+  backdropFilter: 'blur(16px)',
+  WebkitBackdropFilter: 'blur(16px)',
+  borderRadius: 14,
+  padding: '10px 16px',
+  border: '1px solid rgba(255,255,255,0.1)',
 }
 
 export default function RadarScan() {
@@ -171,7 +178,8 @@ export default function RadarScan() {
   }, [phase, nav])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', background: '#000' }}>
+      {/* Analyzing overlay */}
       <AnimatePresence>
         {phase === 'analyzing' && (
           <motion.div
@@ -197,50 +205,99 @@ export default function RadarScan() {
           </motion.div>
         )}
       </AnimatePresence>
-      <TopBanner title="30-Second Scan" center={<span style={{ background: 'rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: 12, fontSize: 15, fontWeight: 800 }}>0:{time.toString().padStart(2, '0')}</span>} right={<span style={{ fontSize: 13, opacity: 0.8 }}>Analysing your speech...</span>} />
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <div style={{ width: '100%', maxWidth: 960, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 40px' }}>
-          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}
-            style={{ width: '100%', maxWidth: 640, margin: '10px 0' }}>
-            <CameraFeed
-              style={{ height: 260 }}
-              withAudio={true}
-              onStream={handleStream}
-              onVideoRef={handleVideoRef}
-              overlay={
-                <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 2 }}
-                  style={{ position: 'absolute', bottom: 12, right: 12, background: 'var(--purple)', color: 'white', fontSize: 18, fontWeight: 800, padding: '6px 16px', borderRadius: 12 }}>
-                  0:{time.toString().padStart(2, '0')}
-                </motion.div>
-              }
-            />
-          </motion.div>
-          <div className="card-surface" style={{ width: '100%', maxWidth: 640, textAlign: 'center', padding: '14px 28px', marginBottom: 8 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 6 }}>Read This Passage Aloud</div>
-            <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.6 }}>
-              <span style={{ color: 'var(--muted)' }}>The most effective leaders are those who can communicate their vision clearly. </span>
-              <span style={{ color: 'var(--purple)', fontWeight: 800 }}>They inspire action not through authority, </span>
-              but through the power of their words and the confidence of their delivery.
-            </div>
-          </div>
-          <AudioWave />
-          <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-            <span style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '6px 14px', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Activity size={14} color="var(--purple)" /> <span style={{ color: 'var(--purple)', fontWeight: 700 }}>{wpm} WPM</span></span>
-            <span style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '6px 14px', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Eye size={14} color="var(--purple)" /> <span style={{ color: 'var(--purple)', fontWeight: 700 }}>{fillers} fillers</span></span>
-            <span style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '6px 14px', fontSize: 11, fontWeight: 600, color: transcriptStatus.startsWith('Error') ? 'var(--red)' : 'var(--muted)' }}>{transcriptStatus}</span>
-          </div>
-          {time < 20 && (
-            <motion.button
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              onClick={finishScan}
-              style={{ marginTop: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 14, padding: '10px 28px', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}
-            >
-              Finish Early
-            </motion.button>
-          )}
+
+      {/* Fullscreen camera */}
+      <CameraFeed
+        style={{ width: '100%', height: '100%', maxWidth: 'none', maxHeight: 'none', border: 'none', borderRadius: 0 }}
+        withAudio={true}
+        onStream={handleStream}
+        onVideoRef={handleVideoRef}
+      />
+
+      {/* Top-left: Title */}
+      <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 20 }}>
+        <div style={{ ...glassCard, fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px #ef4444', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          30-Second Scan
         </div>
       </div>
+
+      {/* Top-center: Timer */}
+      <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 20 }}>
+        <motion.div
+          animate={{ scale: time <= 5 ? [1, 1.08, 1] : 1 }}
+          transition={{ repeat: Infinity, duration: 1 }}
+          style={{
+            ...glassCard,
+            padding: '12px 28px',
+            fontSize: 32,
+            fontWeight: 800,
+            fontVariantNumeric: 'tabular-nums',
+            color: time <= 5 ? '#ef4444' : 'rgba(255,255,255,0.95)',
+            textShadow: time <= 5 ? '0 0 20px rgba(239,68,68,0.5)' : 'none',
+          }}
+        >
+          0:{time.toString().padStart(2, '0')}
+        </motion.div>
+      </div>
+
+      {/* Top-right: Live stats */}
+      <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 20, display: 'flex', gap: 8 }}>
+        <div style={{ ...glassCard, fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Activity size={14} color="#c28fe7" />
+          <span style={{ color: '#c28fe7' }}>{wpm}</span> WPM
+        </div>
+        <div style={{ ...glassCard, fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Eye size={14} color="#c28fe7" />
+          <span style={{ color: '#c28fe7' }}>{fillers}</span> fillers
+        </div>
+        <div style={{
+          ...glassCard,
+          fontSize: 11,
+          fontWeight: 600,
+          padding: '8px 12px',
+          color: transcriptStatus.startsWith('Error') ? '#ef4444' : 'rgba(255,255,255,0.5)',
+        }}>
+          {transcriptStatus}
+        </div>
+      </div>
+
+      {/* Bottom-center: Reading passage */}
+      <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 20, width: '90%', maxWidth: 640 }}>
+        <div style={{ ...glassCard, textAlign: 'center', padding: '16px 24px' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'rgba(255,255,255,0.35)', marginBottom: 8 }}>
+            Read This Passage Aloud
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)' }}>
+            <span style={{ color: 'rgba(255,255,255,0.5)' }}>The most effective leaders are those who can communicate their vision clearly. </span>
+            <span style={{ color: '#c28fe7', fontWeight: 800 }}>They inspire action not through authority, </span>
+            but through the power of their words and the confidence of their delivery.
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom-right: Finish Early */}
+      {time < 20 && (
+        <motion.button
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={finishScan}
+          style={{
+            position: 'absolute',
+            bottom: 20,
+            right: 16,
+            zIndex: 20,
+            ...glassCard,
+            padding: '10px 24px',
+            fontSize: 13,
+            fontWeight: 700,
+            color: 'rgba(255,255,255,0.5)',
+            cursor: 'pointer',
+          }}
+        >
+          Finish Early
+        </motion.button>
+      )}
     </div>
   )
 }
