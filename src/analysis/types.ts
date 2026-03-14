@@ -39,6 +39,12 @@ export interface ScanRawData {
   pitchStdDev: number
   stillnessPercent: number
   fidgetCount: number
+  // Biometric enrichment (optional — backward compatible)
+  blinkRate?: number        // blinks per minute
+  jawTension?: number       // 0-1
+  lipCompression?: number   // 0-1
+  gazeStability?: number    // 0-1
+  pitchJitter?: number      // frame-to-frame pitch variance Hz
 }
 
 export type GameType = 'filler-ninja' | 'eye-lock' | 'pace-racer' | 'pitch-surfer' | 'statue-mode'

@@ -35,6 +35,9 @@ interface PitchSurferMetrics {
 interface StatueModeMetrics {
   stillnessPercent: number
   movementAlerts: number
+  avgPresenceScore?: number
+  presenceStreakSeconds?: number
+  badHabitCount?: number
 }
 
 type GameMetrics =
@@ -72,7 +75,14 @@ export function computeGameScore(metrics: GameMetrics): number {
       return clamp(variationScore + 40 - monotonePenalty)
     }
     case 'statue-mode': {
-      const { stillnessPercent, movementAlerts } = metrics.data
+      const { stillnessPercent, movementAlerts, avgPresenceScore, presenceStreakSeconds, badHabitCount } = metrics.data
+      // New scoring when presence data available
+      if (avgPresenceScore != null) {
+        const streakBonus = Math.min(20, (presenceStreakSeconds ?? 0) * 0.5)
+        const habitPenalty = (badHabitCount ?? 0) * 3
+        return clamp(avgPresenceScore + streakBonus - habitPenalty)
+      }
+      // Fallback: original formula
       return clamp(stillnessPercent - movementAlerts * 8)
     }
   }
@@ -90,6 +100,12 @@ export function computeSimpleGameScore(gameType: GameType, metrics: Record<strin
     case 'pitch-surfer':
       return computeGameScore({ type: 'pitch-surfer', data: { pitchVariation: metrics.pitchVariation ?? 0, monotoneSeconds: metrics.monotoneSeconds ?? 0, totalSeconds: metrics.totalSeconds ?? 30 } })
     case 'statue-mode':
-      return computeGameScore({ type: 'statue-mode', data: { stillnessPercent: metrics.stillnessPercent ?? 0, movementAlerts: metrics.movementAlerts ?? 0 } })
+      return computeGameScore({ type: 'statue-mode', data: {
+        stillnessPercent: metrics.stillnessPercent ?? 0,
+        movementAlerts: metrics.movementAlerts ?? 0,
+        avgPresenceScore: metrics.avgPresenceScore,
+        presenceStreakSeconds: metrics.presenceStreakSeconds,
+        badHabitCount: metrics.badHabitCount,
+      } })
   }
 }

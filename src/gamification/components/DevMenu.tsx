@@ -12,7 +12,7 @@ const routes = [
   { path: '/eye-lock', label: 'Eye Lock' },
   { path: '/pace-racer', label: 'Pace Racer' },
   { path: '/pitch-surfer', label: 'Pitch Surfer' },
-  { path: '/statue-mode', label: 'Statue Mode' },
+  { path: '/statue-mode', label: 'Stage Presence' },
   { path: '/score/filler', label: 'Score: Filler Ninja' },
   { path: '/score/eyelock', label: 'Score: Eye Lock' },
   { path: '/score/pitch', label: 'Score: Pitch Surfer' },

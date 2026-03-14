@@ -27,7 +27,7 @@ const gameConfigs: Record<string, GameConfig> = {
   eyelock: { title: 'Eye Lock', axis: 'Confidence', icon: Eye, replay: '/eye-lock' },
   pitch: { title: 'Pitch Surfer', axis: 'Expression', icon: Waves, replay: '/pitch-surfer' },
   pace: { title: 'Pace Racer', axis: 'Pacing', icon: Activity, replay: '/pace-racer' },
-  statue: { title: 'Statue Mode', axis: 'Composure', icon: Shield, replay: '/statue-mode' },
+  statue: { title: 'Stage Presence', axis: 'Composure', icon: Shield, replay: '/statue-mode' },
 }
 
 function getMessage(score: number, axis: string): string {
@@ -71,11 +71,12 @@ function getCoachingTip(game: string, metrics: Record<string, number>): string {
       return 'Add more vocal variety. Try going higher on important words and lower on serious points.'
     }
     case 'statue': {
-      const alerts = metrics.movementAlerts ?? 0
-      const still = metrics.stillnessPercent ?? 0
-      if (still > 85) return 'Excellent composure! You maintained a professional, steady presence.'
-      if (alerts > 5) return `${alerts} movement alerts. Try planting your feet and keeping your hands clasped or at your sides.`
-      return 'Good start. Focus on keeping your hands still — they\'re usually the first thing to fidget.'
+      const presence = metrics.avgPresenceScore ?? metrics.stillnessPercent ?? 0
+      const habits = metrics.badHabitCount ?? metrics.movementAlerts ?? 0
+      if (presence > 85) return 'Commanding presence! Open stance, purposeful gestures, and confident posture throughout.'
+      if (habits > 5) return `${habits} bad habits detected. Keep an open stance — no crossed arms, hands in pockets, or face touching.`
+      if (presence > 60) return 'Good body language! Try gesturing more in the power zone (between shoulders and hips) for extra impact.'
+      return 'Focus on standing tall with an open stance. Use deliberate hand gestures in front of your torso.'
     }
     default:
       return ''
@@ -110,9 +111,12 @@ function getStats(game: string, metrics: Record<string, number>) {
       ]
     case 'statue':
       return [
-        { icon: Shield, label: 'Composure score', value: `${Math.round(metrics.stillnessPercent ?? 0)}%` },
-        { icon: CheckCircle, label: 'Stability', value: (metrics.movementAlerts ?? 0) <= 3 ? 'Good' : 'Needs work', green: (metrics.movementAlerts ?? 0) <= 3 },
-        { icon: AlertCircle, label: 'Movement alerts', value: String(Math.round(metrics.movementAlerts ?? 0)) },
+        { icon: Shield, label: 'Presence score', value: `${Math.round(metrics.avgPresenceScore ?? metrics.stillnessPercent ?? 0)}` },
+        { icon: TrendingUp, label: 'Posture', value: `${Math.round((metrics.avgPresenceScore ?? metrics.stillnessPercent ?? 0))}%`, green: (metrics.avgPresenceScore ?? metrics.stillnessPercent ?? 0) >= 70 },
+        { icon: Eye, label: 'Openness', value: (metrics.badHabitCount ?? metrics.movementAlerts ?? 0) <= 3 ? 'Open' : 'Closed', green: (metrics.badHabitCount ?? metrics.movementAlerts ?? 0) <= 3 },
+        { icon: Activity, label: 'Gesture quality', value: (metrics.avgPresenceScore ?? 0) >= 70 ? 'Good' : 'Work on it', green: (metrics.avgPresenceScore ?? 0) >= 70 },
+        { icon: AlertCircle, label: 'Bad habits', value: String(Math.round(metrics.badHabitCount ?? metrics.movementAlerts ?? 0)) },
+        { icon: CheckCircle, label: 'Best streak', value: `${Math.round(metrics.presenceStreakSeconds ?? 0)}s`, green: true },
       ]
     default:
       return []

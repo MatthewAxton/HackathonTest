@@ -48,12 +48,46 @@ function scoreExpression(raw: ScanRawData): number {
 }
 
 /**
- * Composure: rewards stillness, penalizes fidgets.
- * Formula: stillnessPercent × 0.7 + (100 - fidgetCount × 5) × 0.3
+ * Composure: enriched with biometric signals when available.
+ * Fallback: stillnessPercent × 0.7 + (100 - fidgetCount × 8) × 0.3
  */
 function scoreComposure(raw: ScanRawData): number {
+  const hasBiometrics = raw.blinkRate != null || raw.jawTension != null ||
+    raw.gazeStability != null || raw.lipCompression != null || raw.pitchJitter != null
+
+  if (hasBiometrics) {
+    const stillness = raw.stillnessPercent / 100
+    const blinkScore = computeBlinkScore(raw.blinkRate ?? 16) / 100
+    const jawRelaxation = 1 - (raw.jawTension ?? 0)
+    const gazeStab = raw.gazeStability ?? 0.5
+    const lipRelax = 1 - (raw.lipCompression ?? 0)
+    const vocalSteadiness = computeVocalSteadiness(raw.pitchJitter ?? 0) / 100
+
+    return clamp((
+      stillness * 0.25 +
+      blinkScore * 0.15 +
+      jawRelaxation * 0.15 +
+      gazeStab * 0.15 +
+      lipRelax * 0.10 +
+      vocalSteadiness * 0.20
+    ) * 100)
+  }
+
+  // Fallback: original formula
   const fidgetPenalty = Math.max(0, 100 - raw.fidgetCount * 8)
   return clamp(raw.stillnessPercent * 0.7 + fidgetPenalty * 0.3)
+}
+
+/** 12-20 blinks/min = 100, penalize extremes */
+function computeBlinkScore(blinksPerMinute: number): number {
+  if (blinksPerMinute >= 12 && blinksPerMinute <= 20) return 100
+  if (blinksPerMinute < 12) return clamp(100 - (12 - blinksPerMinute) * 10)
+  return clamp(100 - (blinksPerMinute - 20) * 5)
+}
+
+/** Lower pitch jitter = steadier voice */
+function computeVocalSteadiness(pitchJitter: number): number {
+  return clamp(100 - pitchJitter * 5)
 }
 
 /**

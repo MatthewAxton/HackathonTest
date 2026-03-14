@@ -50,6 +50,10 @@ export interface GazeReading {
   /** Normalized eye positions (0–1, relative to video frame) for UI overlays */
   leftEyePos: { x: number; y: number } | null
   rightEyePos: { x: number; y: number } | null
+  // Biometric signals (optional — for composure enrichment)
+  blinkDetected?: boolean   // true on blink frame (debounced)
+  jawTension?: number       // 0-1
+  lipCompression?: number   // 0-1
   /** Timestamp */
   timestamp: number
 }
@@ -70,6 +74,7 @@ let rafId = 0
 let active = false
 let smoothedConfidence = 0.5   // Start at neutral
 let frameCount = 0
+let lastBlinkTime = 0          // For blink debounce (200ms)
 const subscribers = new Set<GazeCallback>()
 
 // ─── Init ────────────────────────────────────────────────────────────────────
@@ -233,6 +238,33 @@ function processFrame(video: HTMLVideoElement) {
     const leftEyePos = landmarks.length > 468 ? { x: landmarks[468].x, y: landmarks[468].y } : null
     const rightEyePos = landmarks.length > 473 ? { x: landmarks[473].x, y: landmarks[473].y } : null
 
+    // Biometric signals from blendshapes
+    let blinkDetected: boolean | undefined
+    let jawTension: number | undefined
+    let lipCompression: number | undefined
+
+    if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
+      const bs = results.faceBlendshapes[0].categories
+      const get = (name: string) => bs.find(b => b.categoryName === name)?.score ?? 0
+
+      // Blink detection: eyeBlink > 0.5 with 200ms debounce
+      const blinkL = get('eyeBlinkLeft')
+      const blinkR = get('eyeBlinkRight')
+      const blinkNow = (blinkL + blinkR) / 2 > 0.5
+      if (blinkNow && now - lastBlinkTime > 200) {
+        blinkDetected = true
+        lastBlinkTime = now
+      } else {
+        blinkDetected = false
+      }
+
+      // Jaw tension: jawForward + mouthClose
+      jawTension = Math.min(1, (get('jawForward') + get('mouthClose')) / 2)
+
+      // Lip compression: mouthPressLeft + mouthPressRight
+      lipCompression = Math.min(1, (get('mouthPressLeft') + get('mouthPressRight')) / 2)
+    }
+
     reading = {
       rawConfidence,
       confidence: smoothedConfidence,
@@ -242,6 +274,9 @@ function processFrame(video: HTMLVideoElement) {
       headPitch: headPoseResult.pitch,
       leftEyePos,
       rightEyePos,
+      blinkDetected,
+      jawTension,
+      lipCompression,
       timestamp: Date.now(),
     }
   } else {
@@ -272,6 +307,7 @@ export function startGazeTracking(video: HTMLVideoElement): void {
   active = true
   smoothedConfidence = 0.5
   frameCount = 0
+  lastBlinkTime = 0
   rafId = requestAnimationFrame(() => processFrame(video))
 }
 

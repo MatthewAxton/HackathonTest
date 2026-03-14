@@ -12,6 +12,7 @@ import { initPoseTracker, startPoseTracking, stopPoseTracking, onPoseFrame } fro
 import { useScanStore } from '../../store/scanStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { playScanStart, playScanComplete, playBadgeEarned } from '../../lib/sounds'
+import { SCAN_PASSAGE, matchWordsToPassage } from '../../lib/wordTracker'
 
 function computeStdDev(values: number[]): number {
   if (values.length < 2) return 0
@@ -36,6 +37,7 @@ export default function RadarScan() {
   const [wpm, setWpm] = useState(0)
   const [fillers, setFillers] = useState(0)
   const [transcriptStatus, setTranscriptStatus] = useState('')
+  const [matchedWordCount, setMatchedWordCount] = useState(0)
   const micStarted = useRef(false)
   const scanFinished = useRef(false)
 
@@ -46,6 +48,11 @@ export default function RadarScan() {
   const fidgets = useRef(0)
   const pitchReadings = useRef<number[]>([])
   const wordCountRef = useRef(0)
+  // Biometric accumulators
+  const blinkCount = useRef(0)
+  const jawTensions = useRef<number[]>([])
+  const lipCompressions = useRef<number[]>([])
+  const gazeConfidences = useRef<number[]>([])
 
   // Start scan in store
   const startScan = useScanStore((s) => s.startScan)
@@ -83,6 +90,11 @@ export default function RadarScan() {
     const unsubGaze = onGazeReading((reading) => {
       gazeFrames.current.total++
       if (reading.quality === 'good') gazeFrames.current.good++
+      // Collect biometric data
+      if (reading.blinkDetected) blinkCount.current++
+      if (reading.jawTension != null) jawTensions.current.push(reading.jawTension)
+      if (reading.lipCompression != null) lipCompressions.current.push(reading.lipCompression)
+      gazeConfidences.current.push(reading.confidence)
     })
     const unsubPose = onPoseFrame((frame) => {
       poseScores.current.push(frame.postureScore)
@@ -95,6 +107,8 @@ export default function RadarScan() {
     })
     const unsubTranscript = onTranscript((event) => {
       if (event.isFinal) wordCountRef.current = event.wordCount
+      const matched = matchWordsToPassage(event.text)
+      setMatchedWordCount(prev => Math.max(prev, matched))
     })
     return () => {
       unsubGaze()
@@ -136,6 +150,24 @@ export default function RadarScan() {
     const stillnessPercent = stillFrames.current.total > 0
       ? (stillFrames.current.still / stillFrames.current.total) * 100 : 50
 
+    // Compute biometric averages
+    const blinkRate = (blinkCount.current / 30) * 60 // blinks per minute
+    const avgJawTension = jawTensions.current.length > 0
+      ? jawTensions.current.reduce((a, b) => a + b) / jawTensions.current.length : undefined
+    const avgLipCompression = lipCompressions.current.length > 0
+      ? lipCompressions.current.reduce((a, b) => a + b) / lipCompressions.current.length : undefined
+    const gazeStability = gazeConfidences.current.length > 2
+      ? 1 - computeStdDev(gazeConfidences.current) * 3 : undefined
+    // Pitch jitter: average frame-to-frame pitch change
+    let pitchJitter: number | undefined
+    if (pitchReadings.current.length > 2) {
+      const diffs: number[] = []
+      for (let i = 1; i < pitchReadings.current.length; i++) {
+        diffs.push(Math.abs(pitchReadings.current[i] - pitchReadings.current[i - 1]))
+      }
+      pitchJitter = diffs.reduce((a, b) => a + b) / diffs.length
+    }
+
     appendRawData({
       durationSeconds: 30,
       fillerCount: getFillerCount(),
@@ -147,6 +179,11 @@ export default function RadarScan() {
       pitchStdDev: Math.round(pitchStdDev),
       stillnessPercent: Math.round(stillnessPercent),
       fidgetCount: fidgets.current,
+      blinkRate: Math.round(blinkRate),
+      jawTension: avgJawTension != null ? Math.round(avgJawTension * 100) / 100 : undefined,
+      lipCompression: avgLipCompression != null ? Math.round(avgLipCompression * 100) / 100 : undefined,
+      gazeStability: gazeStability != null ? Math.max(0, Math.min(1, Math.round(gazeStability * 100) / 100)) : undefined,
+      pitchJitter: pitchJitter != null ? Math.round(pitchJitter * 10) / 10 : undefined,
     })
     completeScan()
     playScanComplete()
@@ -265,13 +302,27 @@ export default function RadarScan() {
       {/* Bottom-center: Reading passage */}
       <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 20, width: '90%', maxWidth: 640 }}>
         <div style={{ ...glassCard, textAlign: 'center', padding: '16px 24px' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'rgba(255,255,255,0.35)', marginBottom: 8 }}>
-            Read This Passage Aloud
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'rgba(255,255,255,0.35)', marginBottom: 8, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
+            <span>Read This Passage Aloud</span>
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>📖 {matchedWordCount}/{SCAN_PASSAGE.split(/\s+/).length} words</span>
           </div>
-          <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)' }}>
-            <span style={{ color: 'rgba(255,255,255,0.5)' }}>The most effective leaders are those who can communicate their vision clearly. </span>
-            <span style={{ color: '#c28fe7', fontWeight: 800 }}>They inspire action not through authority, </span>
-            but through the power of their words and the confidence of their delivery.
+          <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.8 }}>
+            {SCAN_PASSAGE.split(/\s+/).map((word, i) => {
+              const isCompleted = i < matchedWordCount
+              const isCurrent = i === matchedWordCount
+              return (
+                <span key={i} style={{
+                  color: isCompleted ? '#58CC02'
+                    : isCurrent ? '#C28FE7'
+                    : 'rgba(255,255,255,0.35)',
+                  fontWeight: isCurrent ? 800 : 600,
+                  transition: 'color 0.2s, font-weight 0.2s',
+                  ...(isCurrent ? { textShadow: '0 0 8px rgba(194,143,231,0.5)' } : {}),
+                }}>
+                  {word}{' '}
+                </span>
+              )
+            })}
           </div>
         </div>
       </div>

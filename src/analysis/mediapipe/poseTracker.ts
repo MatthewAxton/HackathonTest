@@ -24,6 +24,18 @@ export interface PoseFrame {
     leftHip: LandmarkPos
     rightHip: LandmarkPos
   } | null
+  // Stage Presence fields (all optional — backward compatible)
+  shoulderLevel?: number       // 0-1 how level shoulders are
+  uprightAlignment?: number    // 0-1 head above shoulders
+  openness?: number            // 0-1 inverse of closed postures
+  gestureQuality?: number      // 0-1 hands in power zone with movement
+  stability?: number           // 0-1 hip midpoint stability
+  armsCrossed?: boolean
+  handsInPockets?: boolean
+  faceTouching?: boolean
+  figLeaf?: boolean
+  handsBehindBack?: boolean
+  presenceScore?: number       // 0-100 weighted composite
 }
 
 type PoseFrameCallback = (frame: PoseFrame) => void
@@ -36,9 +48,11 @@ const subscribers = new Set<PoseFrameCallback>()
 
 // Buffers for stability calculation
 const headPositions: { x: number; y: number }[] = []
+const hipPositions: { x: number; y: number }[] = []
 let prevLeftWrist: { x: number; y: number } | null = null
 let prevRightWrist: { x: number; y: number } | null = null
 const HEAD_BUFFER_SIZE = 30
+const HIP_BUFFER_SIZE = 30
 
 export async function initPoseTracker(): Promise<void> {
   const filesetResolver = await FilesetResolver.forVisionTasks(
@@ -142,7 +156,108 @@ function processFrame(video: HTMLVideoElement) {
     }
   }
 
-  const frame: PoseFrame = { postureScore, headStability, handMovement, isFidgeting, timestamp: Date.now(), bodyLandmarks }
+  // Stage Presence detection
+  let shoulderLevel = 0
+  let uprightAlignment = 0
+  let openness = 1
+  let gestureQuality = 0
+  let stability = 1
+  let armsCrossed = false
+  let handsInPockets = false
+  let faceTouching = false
+  let figLeaf = false
+  let handsBehindBack = false
+  let presenceScore = 0
+
+  if (results.landmarks && results.landmarks.length > 0) {
+    const lm = results.landmarks[0]
+    if (lm.length > 24) {
+      const nose = lm[0]
+      const lShoulder = lm[11], rShoulder = lm[12]
+      const lWrist = lm[15], rWrist = lm[16]
+      const lHip = lm[23], rHip = lm[24]
+
+      // Shoulder level: 1 = perfectly level
+      shoulderLevel = Math.max(0, Math.min(1, 1 - Math.abs(lShoulder.y - rShoulder.y) * 10))
+
+      // Upright alignment: head above shoulder midpoint
+      const shoulderMidY = (lShoulder.y + rShoulder.y) / 2
+      const headAbove = shoulderMidY - nose.y
+      uprightAlignment = Math.max(0, Math.min(1, headAbove * 5))
+
+      // Hip stability
+      const hipMid = { x: (lHip.x + rHip.x) / 2, y: (lHip.y + rHip.y) / 2 }
+      hipPositions.push(hipMid)
+      if (hipPositions.length > HIP_BUFFER_SIZE) hipPositions.shift()
+      if (hipPositions.length >= 5) {
+        const xStd = stdDev(hipPositions.map(p => p.x))
+        const yStd = stdDev(hipPositions.map(p => p.y))
+        stability = Math.max(0, Math.min(1, 1 - (xStd + yStd) * 8))
+      }
+
+      // Body midline X
+      const midX = (lShoulder.x + rShoulder.x) / 2
+      const hipMidY = (lHip.y + rHip.y) / 2
+      const chestY = shoulderMidY + (hipMidY - shoulderMidY) * 0.3
+
+      // Crossed arms: wrists cross midline near opposite elbows at chest height
+      const lWristCrossed = lWrist.x < midX && Math.abs(lWrist.y - chestY) < 0.15
+      const rWristCrossed = rWrist.x > midX && Math.abs(rWrist.y - chestY) < 0.15
+      armsCrossed = lWristCrossed && rWristCrossed
+
+      // Hands in pockets: wrists below hips, close to same-side hip X
+      const lInPocket = lWrist.y > lHip.y && Math.abs(lWrist.x - lHip.x) < 0.08
+      const rInPocket = rWrist.y > rHip.y && Math.abs(rWrist.x - rHip.x) < 0.08
+      handsInPockets = lInPocket || rInPocket
+
+      // Face touching: wrist close to nose
+      const lToNose = euclidean(lWrist, nose)
+      const rToNose = euclidean(rWrist, nose)
+      faceTouching = lToNose < 0.12 || rToNose < 0.12
+
+      // Fig leaf: both wrists below hips and close together
+      const bothBelowHips = lWrist.y > hipMidY && rWrist.y > hipMidY
+      const wristsClose = Math.abs(lWrist.x - rWrist.x) < 0.12
+      figLeaf = bothBelowHips && wristsClose
+
+      // Hands behind back: low wrist visibility (z-depth or visibility score)
+      const lVis = lm[15].z ?? 0
+      const rVis = lm[16].z ?? 0
+      handsBehindBack = lVis > 0.1 && rVis > 0.1
+
+      // Openness: inverse of bad postures
+      const badPostureCount = [armsCrossed, handsInPockets, figLeaf, handsBehindBack].filter(Boolean).length
+      openness = Math.max(0, 1 - badPostureCount * 0.4)
+
+      // Gesture quality: hands in power zone (between shoulders and hips) with purposeful movement
+      const inPowerZone = (w: typeof lWrist) =>
+        w.y > shoulderMidY && w.y < hipMidY &&
+        w.x > Math.min(lShoulder.x, rShoulder.x) - 0.05 &&
+        w.x < Math.max(lShoulder.x, rShoulder.x) + 0.05
+      const lInZone = inPowerZone(lWrist) ? 1 : 0
+      const rInZone = inPowerZone(rWrist) ? 1 : 0
+      const zoneScore = (lInZone + rInZone) / 2
+      const movementScore = Math.min(1, handMovement * 2) // moderate movement is good
+      gestureQuality = zoneScore * 0.6 + movementScore * 0.4
+
+      // Presence score: weighted composite
+      const habitPenalty = [armsCrossed, faceTouching, figLeaf, handsInPockets, handsBehindBack].filter(Boolean).length * 10
+      presenceScore = Math.max(0, Math.min(100, Math.round(
+        (uprightAlignment * 100) * 0.25 +
+        (stability * 100) * 0.20 +
+        (openness * 100) * 0.20 +
+        (gestureQuality * 100) * 0.25 +
+        (1 * 100) * 0.10 -
+        habitPenalty
+      )))
+    }
+  }
+
+  const frame: PoseFrame = {
+    postureScore, headStability, handMovement, isFidgeting, timestamp: Date.now(), bodyLandmarks,
+    shoulderLevel, uprightAlignment, openness, gestureQuality, stability,
+    armsCrossed, handsInPockets, faceTouching, figLeaf, handsBehindBack, presenceScore,
+  }
   subscribers.forEach(cb => cb(frame))
   rafId = requestAnimationFrame(() => processFrame(video))
 }
@@ -151,6 +266,7 @@ export function startPoseTracking(video: HTMLVideoElement): void {
   if (active) return
   active = true
   headPositions.length = 0
+  hipPositions.length = 0
   prevLeftWrist = null
   prevRightWrist = null
   frameCount = 0

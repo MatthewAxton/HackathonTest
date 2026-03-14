@@ -17,7 +17,7 @@ const GAME_META: Record<GameType, { name: string; icon: LucideIcon; axis: string
   'eye-lock': { name: 'Eye Lock', icon: Eye, axis: 'Confidence', time: '45s', desc: 'Keep your gaze locked on the camera. Look away and the screen dims.', path: '/eye-lock' },
   'pace-racer': { name: 'Pace Racer', icon: Activity, axis: 'Pacing', time: '60s', desc: 'Stay in the WPM zone. Not too fast, not too slow — find your rhythm.', path: '/pace-racer' },
   'pitch-surfer': { name: 'Pitch Surfer', icon: Waves, axis: 'Expression', time: '30s', desc: 'Surf the wave with your voice. Vary your pitch to keep it alive!', path: '/pitch-surfer' },
-  'statue-mode': { name: 'Statue Mode', icon: Shield, axis: 'Composure', time: '45s', desc: 'Speak while staying perfectly still. Movement gets tracked!', path: '/statue-mode' },
+  'statue-mode': { name: 'Stage Presence', icon: Shield, axis: 'Composure', time: '45s', desc: 'Master body language — open stance, power zone gestures, commanding presence.', path: '/statue-mode' },
 }
 const AXIS_MAP: Record<GameType, 'clarity' | 'confidence' | 'pacing' | 'expression' | 'composure'> = {
   'filler-ninja': 'clarity', 'eye-lock': 'confidence', 'pace-racer': 'pacing', 'pitch-surfer': 'expression', 'statue-mode': 'composure',
