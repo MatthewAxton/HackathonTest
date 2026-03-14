@@ -115,11 +115,14 @@ function createRecognition(): SpeechRecognition {
   }
 
   rec.onerror = (event) => {
-    console.warn('[SpeechMAX] SpeechRecognition error:', event.error)
-    lastError = event.error
+    const err = event.error
+    // no-speech and aborted are normal during pauses — not real errors
+    if (err === 'no-speech' || err === 'aborted') return
+    console.warn('[SpeechMAX] SpeechRecognition error:', err)
+    lastError = err
     // Don't restart on permanent errors
-    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') return
-    // Schedule restart (onend will also fire — prevent double restart)
+    if (err === 'not-allowed' || err === 'service-not-allowed') return
+    // Schedule restart with slightly longer delay for real errors
     if (active && !restartScheduled) {
       restartScheduled = true
       try { rec.stop() } catch { /* ignore */ }
@@ -127,9 +130,9 @@ function createRecognition(): SpeechRecognition {
   }
 
   rec.onend = () => {
-    // Single restart point — handles both normal end and post-error end
+    // Single restart point — handles normal end and post-error end
     if (active) {
-      const delay = restartScheduled ? 200 : 50
+      const delay = restartScheduled ? 150 : 30
       restartScheduled = false
       setTimeout(() => { if (active) startInternal() }, delay)
     }
