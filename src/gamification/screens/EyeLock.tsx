@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Eye, Zap, Lock } from 'lucide-react'
 import GameIntro from '../components/GameIntro'
-import CountdownOverlay from '../components/CountdownOverlay'
 import { TopBanner, BottomBanner } from '../components/Banner'
 import { AudioWave } from '../components/AudioWave'
 import { CameraFeed } from '../components/CameraFeed'
@@ -27,7 +26,7 @@ export default function EyeLock() {
   const [ready, setReady] = useState(false)
   const [charge, setCharge] = useState(0)
   const [burstCount, setBurstCount] = useState(0)
-  const [phase, setPhase] = useState<'intro' | 'countdown' | 'playing'>('intro')
+  const [phase, setPhase] = useState<'intro' | 'playing'>('intro')
   const finished = useRef(false)
 
   const eye = useEyeContact()
@@ -130,13 +129,8 @@ export default function EyeLock() {
           <div style={{ position: 'absolute', inset: 35, borderRadius: '50%', background: '#58CC02', boxShadow: '0 0 20px rgba(88,204,2,0.5)' }} />
         </div>
       }
-      onReady={() => setPhase('countdown')}
+      onReady={() => setPhase('playing')}
     />
-  )
-  if (phase === 'countdown') return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      <CountdownOverlay onComplete={() => setPhase('playing')} />
-    </div>
   )
   const color = QUALITY_COLORS[eye.quality]
   const mins = Math.floor(time / 60)

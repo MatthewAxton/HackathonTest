@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import { Zap, TrendingUp, Minus, Waves } from 'lucide-react'
 import { TopBanner, BottomBanner } from '../components/Banner'
 import GameIntro from '../components/GameIntro'
-import CountdownOverlay from '../components/CountdownOverlay'
 import { Mike } from '../components/Mike'
 import { AudioWave } from '../components/AudioWave'
 import { startAudioAnalysis, stopAudioAnalysis, onAudioFrame } from '../../analysis/audio/pitchAnalyzer'
@@ -27,7 +26,7 @@ export default function PitchSurfer() {
   const [currentPitch, setCurrentPitch] = useState(0)
   const [variation, setVariation] = useState<'low' | 'good' | 'high'>('low')
   const { requestMic, stopMic } = useMicrophone()
-  const [phase, setPhase] = useState<'intro' | 'countdown' | 'playing'>('intro')
+  const [phase, setPhase] = useState<'intro' | 'playing'>('intro')
   const [wiping, setWiping] = useState(false)
   const pitchBuffer = useRef<number[]>([])
   const monotoneSeconds = useRef(0)
@@ -157,13 +156,8 @@ export default function PitchSurfer() {
           />
         </svg>
       }
-      onReady={() => setPhase('countdown')}
+      onReady={() => setPhase('playing')}
     />
-  )
-  if (phase === 'countdown') return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      <CountdownOverlay onComplete={() => setPhase('playing')} />
-    </div>
   )
   const variationColor = variation === 'high' ? 'var(--green)' : variation === 'good' ? 'var(--purple)' : 'var(--red)'
   const VariationIcon = variation === 'low' ? Minus : TrendingUp

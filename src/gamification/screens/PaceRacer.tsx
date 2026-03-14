@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Zap, Activity } from 'lucide-react'
 import GameIntro from '../components/GameIntro'
-import CountdownOverlay from '../components/CountdownOverlay'
 import { TopBanner, BottomBanner } from '../components/Banner'
 import { AudioWave } from '../components/AudioWave'
 import { startTranscription, stopTranscription } from '../../analysis/speech/transcriber'
@@ -26,7 +25,7 @@ export default function PaceRacer() {
   const [time, setTime] = useState(gameDuration)
   const [wpm, setWpm] = useState(0)
   const [timeInZone, setTimeInZone] = useState(0)
-  const [phase, setPhase] = useState<'intro' | 'countdown' | 'playing'>('intro')
+  const [phase, setPhase] = useState<'intro' | 'playing'>('intro')
   const [ready, setReady] = useState(false)
   const [gear, setGear] = useState(0)
   const consecutiveInZone = useRef(0)
@@ -132,13 +131,8 @@ export default function PaceRacer() {
           </div>
         </div>
       }
-      onReady={() => setPhase('countdown')}
+      onReady={() => setPhase('playing')}
     />
-  )
-  if (phase === 'countdown') return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      <CountdownOverlay onComplete={() => setPhase('playing')} />
-    </div>
   )
   const inZone = wpm >= zoneMin && wpm <= zoneMax
   const nearLow = Math.abs(wpm - zoneMin) < 15 && wpm > 0

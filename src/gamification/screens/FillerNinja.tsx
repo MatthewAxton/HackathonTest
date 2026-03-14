@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Zap, X, Crosshair } from 'lucide-react'
 import GameIntro from '../components/GameIntro'
-import CountdownOverlay from '../components/CountdownOverlay'
 import { TopBanner, BottomBanner } from '../components/Banner'
 import { AudioWave } from '../components/AudioWave'
 import { startTranscription, stopTranscription, onTranscript } from '../../analysis/speech/transcriber'
@@ -31,7 +30,7 @@ export default function FillerNinja() {
   const [fillers, setFillers] = useState(0)
   const [lastFiller, setLastFiller] = useState<string | null>(null)
   const [liveText, setLiveText] = useState('')
-  const [phase, setPhase] = useState<'intro' | 'countdown' | 'playing'>('intro')
+  const [phase, setPhase] = useState<'intro' | 'playing'>('intro')
   const [ready, setReady] = useState(false)
   const [silent, setSilent] = useState(false)
   const lastFillerTime = useRef(Date.now())
@@ -142,13 +141,8 @@ export default function FillerNinja() {
           ))}
         </div>
       }
-      onReady={() => setPhase('countdown')}
+      onReady={() => setPhase('playing')}
     />
-  )
-  if (phase === 'countdown') return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      <CountdownOverlay onComplete={() => setPhase('playing')} />
-    </div>
   )
   const ninjaBarColor = streak > 20 ? '#58CC02' : streak > 10 ? '#C28FE7' : '#6B21A8'
   return (

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Zap, Shield } from 'lucide-react'
 import GameIntro from '../components/GameIntro'
-import CountdownOverlay from '../components/CountdownOverlay'
 import { TopBanner, BottomBanner } from '../components/Banner'
 import { AudioWave } from '../components/AudioWave'
 import { CameraFeed } from '../components/CameraFeed'
@@ -26,7 +25,7 @@ export default function StatueMode() {
   const [movementAlerts, setMovementAlerts] = useState(0)
   const [headStatus, setHeadStatus] = useState<'stable' | 'moving'>('stable')
   const [handStatus, setHandStatus] = useState<'stable' | 'moving'>('stable')
-  const [phase, setPhase] = useState<'intro' | 'countdown' | 'playing'>('intro')
+  const [phase, setPhase] = useState<'intro' | 'playing'>('intro')
   const [modelLoading, setModelLoading] = useState(true)
   const [bodyLandmarks, setBodyLandmarks] = useState<PoseFrame['bodyLandmarks']>(null)
   const alertCount = useRef(0)
@@ -128,13 +127,8 @@ export default function StatueMode() {
           <line x1={72} y1={105} x2={80} y2={150} stroke="#58CC02" strokeWidth={2} strokeLinecap="round" />
         </svg>
       }
-      onReady={() => setPhase('countdown')}
+      onReady={() => setPhase('playing')}
     />
-  )
-  if (phase === 'countdown') return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      <CountdownOverlay onComplete={() => setPhase('playing')} />
-    </div>
   )
 
   const heatColor = (intensity: number) => intensity < 0.3 ? '#58CC02' : intensity < 0.6 ? '#FCD34D' : '#FF4B4B'
