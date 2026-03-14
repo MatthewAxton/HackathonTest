@@ -1,8 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mike } from '../components/Mike'
-import { useSessionStore } from '../../store/sessionStore'
 
 const ease = [0.25, 0.46, 0.45, 0.94] as const
 
@@ -15,21 +14,6 @@ const slideVariants = {
 export default function Onboarding() {
   const nav = useNavigate()
   const [step, setStep] = useState(0)
-  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null)
-  const getUnusedPrompt = useSessionStore((s) => s.getUnusedPrompt)
-  const markPromptUsed = useSessionStore((s) => s.markPromptUsed)
-
-  // Get 3 prompts (one per category) — memoized so they don't change on re-render
-  const prompts = useMemo(() => [
-    { category: 'Casual', prompt: getUnusedPrompt('casual') },
-    { category: 'Professional', prompt: getUnusedPrompt('professional') },
-    { category: 'Interview', prompt: getUnusedPrompt('interview') },
-  ], [getUnusedPrompt])
-
-  const handleSelectPrompt = (prompt: string) => {
-    setSelectedPrompt(prompt)
-    markPromptUsed(prompt)
-  }
 
   return (
     <div style={{
@@ -39,7 +23,7 @@ export default function Onboarding() {
     }}>
       {/* Step dots */}
       <div style={{ position: 'absolute', top: 32, display: 'flex', gap: 8 }}>
-        {[0, 1, 2].map((i) => (
+        {[0, 1].map((i) => (
           <div
             key={i}
             style={{
@@ -84,57 +68,10 @@ export default function Onboarding() {
           </motion.div>
         )}
 
-        {/* Slide 2 — Prompt Picker */}
+        {/* Slide 2 — Camera Permission */}
         {step === 1 && (
           <motion.div
             key="slide-1"
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.4, ease }}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: 480 }}
-          >
-            <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 6, color: 'var(--text, #1A1A1A)' }}>Pick a topic to speak about</div>
-            <div style={{ fontSize: 14, color: 'var(--muted, #777)', marginBottom: 24 }}>You'll speak about this for 30 seconds</div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
-              {prompts.map((p) => {
-                const isSelected = selectedPrompt === p.prompt
-                return (
-                  <motion.button
-                    key={p.prompt}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleSelectPrompt(p.prompt)}
-                    style={{
-                      width: '100%', textAlign: 'left', padding: '16px 20px', borderRadius: 16, cursor: 'pointer',
-                      background: isSelected ? 'rgba(194,143,231,0.08)' : 'rgba(255,255,255,0.04)',
-                      border: isSelected ? '2px solid var(--purple, #C28FE7)' : '1px solid var(--border, #E5D5F7)',
-                      fontFamily: 'Nunito, sans-serif',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--purple, #C28FE7)', marginBottom: 4 }}>{p.category}</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text, #1A1A1A)', lineHeight: 1.4 }}>{p.prompt}</div>
-                  </motion.button>
-                )
-              })}
-            </div>
-
-            <button
-              className="btn-primary"
-              style={{ marginTop: 28, width: '100%', maxWidth: 320, opacity: selectedPrompt ? 1 : 0.4, pointerEvents: selectedPrompt ? 'auto' : 'none' }}
-              onClick={() => setStep(2)}
-            >
-              Next
-            </button>
-          </motion.div>
-        )}
-
-        {/* Slide 3 — Camera Permission */}
-        {step === 2 && (
-          <motion.div
-            key="slide-2"
             variants={slideVariants}
             initial="enter"
             animate="center"

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 interface MikeProps { state?: 'idle' | 'talking'; size?: number }
 
 export function Mike({ state = 'idle', size = 80 }: MikeProps) {
-  const src = state === 'talking' ? '/talking.gif' : '/idle.gif'
+  const src = state === 'talking' ? '/talking.gif' : '/IDLE.gif'
   return (
     <div style={{ width: size + 16, height: size + 16, borderRadius: '50%', background: 'var(--surface)', padding: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 24px rgba(0,0,0,0.3)' }}>
       <img src={src} width={size} height={size} style={{ objectFit: 'contain' }} alt="Mike" />
@@ -15,7 +15,7 @@ export function Mike({ state = 'idle', size = 80 }: MikeProps) {
 export function MikeSmall({ state = 'talking' }: { state?: 'idle' | 'talking' }) {
   return (
     <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', padding: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-      <img src={state === 'talking' ? '/talking.gif' : '/idle.gif'} width={38} height={38} style={{ objectFit: 'contain' }} alt="Mike" />
+      <img src={state === 'talking' ? '/talking.gif' : '/IDLE.gif'} width={38} height={38} style={{ objectFit: 'contain' }} alt="Mike" />
     </div>
   )
 }

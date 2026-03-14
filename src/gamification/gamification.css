@@ -36,10 +36,9 @@
 }
 
 .gamification-theme .gradient-banner {
-  background: linear-gradient(135deg, #C28FE7, #8B5CF6, #6D28D9, #A855F7, #C28FE7, #8B5CF6);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
-  color: white;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.9);
 }
 
 @keyframes waveBar {
