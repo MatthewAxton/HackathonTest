@@ -37,6 +37,7 @@ let recognition: SpeechRecognition | null = null
 let active = false
 let cumulativeWordCount = 0
 let lastError: string | null = null
+let restartScheduled = false
 const subscribers = new Set<TranscriptCallback>()
 
 // Simulation fallback state
@@ -116,17 +117,21 @@ function createRecognition(): SpeechRecognition {
   rec.onerror = (event) => {
     console.warn('[SpeechMAX] SpeechRecognition error:', event.error)
     lastError = event.error
-    // Auto-restart on recoverable errors (not 'not-allowed' or 'service-not-allowed')
-    if (active && event.error !== 'not-allowed' && event.error !== 'service-not-allowed') {
+    // Don't restart on permanent errors
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') return
+    // Schedule restart (onend will also fire — prevent double restart)
+    if (active && !restartScheduled) {
+      restartScheduled = true
       try { rec.stop() } catch { /* ignore */ }
-      setTimeout(() => { if (active) startInternal() }, 100)
     }
   }
 
   rec.onend = () => {
-    // Auto-restart immediately if session is still active — minimize gap
+    // Single restart point — handles both normal end and post-error end
     if (active) {
-      setTimeout(() => { if (active) startInternal() }, 50)
+      const delay = restartScheduled ? 200 : 50
+      restartScheduled = false
+      setTimeout(() => { if (active) startInternal() }, delay)
     }
   }
 
@@ -134,10 +139,14 @@ function createRecognition(): SpeechRecognition {
 }
 
 function startInternal() {
+  // Stop any existing instance first
+  if (recognition) {
+    try { recognition.stop() } catch { /* ignore */ }
+    recognition = null
+  }
   try {
     recognition = createRecognition()
     recognition.start()
-    console.log('[SpeechMAX] SpeechRecognition started')
   } catch (e) {
     console.warn('[SpeechMAX] SpeechRecognition start failed, retrying...', e)
     setTimeout(() => { if (active) startInternal() }, 500)
