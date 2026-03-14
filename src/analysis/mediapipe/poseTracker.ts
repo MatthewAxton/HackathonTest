@@ -85,7 +85,7 @@ function processFrame(video: HTMLVideoElement) {
         const xStd = stdDev(headPositions.map(p => p.x))
         const yStd = stdDev(headPositions.map(p => p.y))
         const totalStd = xStd + yStd
-        headStability = Math.max(0, Math.min(1, 1 - totalStd * 20))
+        headStability = Math.max(0, Math.min(1, 1 - totalStd * 10))
       }
     }
 
@@ -101,8 +101,8 @@ function processFrame(video: HTMLVideoElement) {
       prevLeftWrist = leftWrist
       prevRightWrist = rightWrist
 
-      handMovement = Math.min(1, movement * 10)
-      isFidgeting = handMovement > 0.3
+      handMovement = Math.min(1, movement * 5)
+      isFidgeting = handMovement > 0.5
     }
   }
 

@@ -95,9 +95,9 @@ export default function StatueMode() {
       <TopBanner backTo="/queue" title="Statue Mode" center={<span style={{ background: 'rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: 12, fontSize: 15, fontWeight: 800 }}>0:{time.toString().padStart(2, '0')}</span>} right={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700 }}><Zap size={14} /> {composureScore}</span><span style={{ background: `${difficulty === 'hard' ? '#FF4B4B' : difficulty === 'medium' ? '#FCD34D' : '#58CC02'}30`, color: difficulty === 'hard' ? '#FF4B4B' : difficulty === 'medium' ? '#FCD34D' : '#58CC02', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 8, textTransform: 'uppercase' }}>{difficulty}</span></div>} />
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         <div style={{ width: '100%', maxWidth: 960, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 40px' }}>
-          <div style={{ width: '100%', maxWidth: 640, marginBottom: 10, boxShadow: '0 4px 20px rgba(194,143,231,0.08)', borderRadius: 20 }}>
+          <div style={{ width: '100%', marginBottom: 8, boxShadow: '0 4px 20px rgba(194,143,231,0.08)', borderRadius: 20 }}>
             <CameraFeed
-              style={{ height: 300 }}
+              style={{ height: 'calc(100vh - 260px)', maxHeight: 460 }}
               overlay={
                 <svg style={{ position: 'absolute', inset: 30, pointerEvents: 'none' }} viewBox="0 0 580 300">
                   <rect x={230} y={5} width={120} height={70} rx={8} fill={headStatus === 'stable' ? 'rgba(88,204,2,0.06)' : 'rgba(255,75,75,0.06)'} stroke={headColor} strokeWidth={1} strokeDasharray={4} />

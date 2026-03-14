@@ -141,17 +141,17 @@ export default function EyeLock() {
       />
 
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <div style={{ width: '100%', maxWidth: 960, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 40px' }}>
+        <div style={{ width: '100%', maxWidth: 960, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 24px' }}>
 
           {/* Camera with eye contact measurement overlay */}
           <div style={{
-            width: '100%', maxWidth: 640, marginBottom: 12,
+            width: '100%', marginBottom: 8,
             boxShadow: `0 0 0 3px ${color}50, 0 4px 24px rgba(0,0,0,0.15)`,
             borderRadius: 20,
             transition: 'box-shadow 0.5s ease',
           }}>
             <CameraFeed
-              style={{ height: 360 }}
+              style={{ height: 'calc(100vh - 220px)', maxHeight: 500 }}
               withAudio={true}
               onStream={handleStream}
               overlay={
