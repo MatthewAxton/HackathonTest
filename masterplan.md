@@ -324,9 +324,9 @@ Add green glow (box-shadow animation) on progress bar when in 120-160 WPM zone. 
 
 ---
 
-## Sprint 5: Sound & Final Polish
+## Sprint 5: Sound & Final Polish [COMPLETE]
 
-### 5.1 — Sound FX system [M]
+### 5.1 — Sound FX system [DONE]
 
 Create Web Audio API oscillator-based sound manager (no .mp3 files needed). Short synthesized tones:
 1. Scan start — ascending tone
@@ -343,13 +343,13 @@ Create Web Audio API oscillator-based sound manager (no .mp3 files needed). Shor
 
 ---
 
-### 5.2 — Final visual QA pass [S]
+### 5.2 — Final visual QA pass [DONE]
 
 Verify every screen matches dark theme. Check for any remaining white backgrounds, light text on dark text, broken contrast, etc.
 
 ---
 
-### 5.3 — Performance check [S]
+### 5.3 — Performance check [DONE]
 
 Verify lazy loading works, test simultaneous MediaPipe models on demo hardware, add frame-skipping fallbacks if needed.
 
