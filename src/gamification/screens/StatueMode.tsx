@@ -238,7 +238,11 @@ export default function StatueMode() {
           )}
         </div>
       </div>
-      <BottomBanner left={<div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 14, padding: '8px 16px', fontSize: 13, fontWeight: 600 }}>{movementAlerts > 3 ? 'Too much movement! Stay still.' : 'Great composure! Keep it up.'}</div>} center={<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><div style={{ fontSize: 22, fontWeight: 800 }}>{composureScore}</div><div style={{ fontSize: 11, fontWeight: 600, opacity: 0.7, textTransform: 'uppercase', letterSpacing: 0.5 }}>Composure Score</div></div>} right={<><Zap size={14} /> {movementAlerts} alerts</>} />
+      <BottomBanner left={<div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 14, padding: '8px 16px', fontSize: 13, fontWeight: 600 }}>{headMoving && handMoving ? 'Head and hands moving — freeze everything!'
+              : headMoving ? 'Head moving! Keep it still and centered.'
+              : handMoving ? 'Hands fidgeting — clasp them or hold at sides.'
+              : torsoMoving ? 'Body swaying — plant your feet firmly.'
+              : 'Great composure! Stay steady.'}</div>} center={<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}><div style={{ fontSize: 22, fontWeight: 800 }}>{composureScore}</div><div style={{ fontSize: 11, fontWeight: 600, opacity: 0.7, textTransform: 'uppercase', letterSpacing: 0.5 }}>Composure Score</div></div>} right={<><Zap size={14} /> {movementAlerts} alerts</>} />
     </div>
   )
 }

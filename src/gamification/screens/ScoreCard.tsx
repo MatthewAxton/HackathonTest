@@ -37,6 +37,51 @@ function getMessage(score: number, axis: string): string {
   return `Keep practicing — your ${axis.toLowerCase()} will improve!`
 }
 
+function getCoachingTip(game: string, metrics: Record<string, number>): string {
+  switch (game) {
+    case 'filler': {
+      const count = metrics.fillerCount ?? 0
+      const streak = metrics.longestStreakSeconds ?? 0
+      if (count === 0) return 'Perfect! Zero filler words. You spoke with complete clarity.'
+      if (count <= 2) return 'Nearly perfect! Try replacing those last fillers with a brief pause — silence sounds confident.'
+      if (streak > 15) return `You had a great ${streak}s clean streak! Focus on maintaining that rhythm throughout.`
+      return 'When you feel an "um" coming, pause and take a breath instead. Silence is powerful.'
+    }
+    case 'eyelock': {
+      const pct = metrics.gazeLockedPercent ?? 0
+      const best = metrics.longestGazeSeconds ?? 0
+      if (pct >= 85) return 'Excellent sustained eye contact! You naturally hold attention.'
+      if (best > 10) return `Your best streak was ${best}s — try to sustain that focus throughout. Pick a spot near the camera lens.`
+      return 'Try looking at a point right next to the camera lens. Relax your face and breathe — tension causes eyes to dart.'
+    }
+    case 'pace': {
+      const wpm = metrics.avgWpm ?? 0
+      const inZone = metrics.timeInZoneSeconds ?? 0
+      const total = metrics.totalSeconds ?? 60
+      if (inZone / total > 0.7) return 'Great pacing! You stayed in the zone most of the time.'
+      if (wpm > 160) return 'You\'re speaking too fast. Try pausing between sentences and breathing deeply.'
+      if (wpm < 100) return 'You\'re speaking too slowly. Try to maintain energy and momentum in your delivery.'
+      return 'Your pace fluctuated. Focus on steady breathing and consistent energy between sentences.'
+    }
+    case 'pitch': {
+      const variation = metrics.pitchVariation ?? 0
+      const monotone = metrics.monotoneSeconds ?? 0
+      if (variation > 30) return 'Great vocal variety! Your delivery sounds engaging and dynamic.'
+      if (monotone > 10) return `You had ${monotone}s of monotone speech. Try emphasising key words by going higher or lower in pitch.`
+      return 'Add more vocal variety. Try going higher on important words and lower on serious points.'
+    }
+    case 'statue': {
+      const alerts = metrics.movementAlerts ?? 0
+      const still = metrics.stillnessPercent ?? 0
+      if (still > 85) return 'Excellent composure! You maintained a professional, steady presence.'
+      if (alerts > 5) return `${alerts} movement alerts. Try planting your feet and keeping your hands clasped or at your sides.`
+      return 'Good start. Focus on keeping your hands still — they\'re usually the first thing to fidget.'
+    }
+    default:
+      return ''
+  }
+}
+
 function getStats(game: string, metrics: Record<string, number>) {
   switch (game) {
     case 'filler':
@@ -96,6 +141,7 @@ export default function ScoreCard() {
   const metrics = lastResult?.metrics ?? {}
   const stats = getStats(game || 'filler', metrics)
   const message = getMessage(currentScore, config.axis)
+  const coachingTip = getCoachingTip(game || 'filler', metrics)
 
   // Compute next game from recommended order
   const recommendedOrder = getRecommendedGameOrder()
@@ -164,6 +210,17 @@ export default function ScoreCard() {
               </motion.div>
             ))}
           </div>
+          {coachingTip && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.2 }}
+              style={{ width: '100%', maxWidth: 480, marginBottom: 16, background: 'rgba(194,143,231,0.08)', border: '1px solid rgba(194,143,231,0.2)', borderRadius: 14, padding: '14px 18px' }}
+            >
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--purple)', marginBottom: 6 }}>Coach's Tip</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', lineHeight: 1.5 }}>{coachingTip}</div>
+            </motion.div>
+          )}
           <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 480 }}>
             <button className="btn-primary" style={{ flex: 1 }} onClick={() => nav(nextPath)}>{nextGameType ? 'Next Game' : 'View Progress'}</button>
             <button className="btn-secondary" style={{ flex: 1 }} onClick={() => nav(config.replay)}>Play Again</button>

@@ -284,8 +284,8 @@ export default function EyeLock() {
         left={
           <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 14, padding: '8px 16px', fontSize: 13, fontWeight: 600 }}>
             {eye.quality === 'good' ? 'Strong eye contact — keep it up!'
-              : eye.quality === 'weak' ? 'Eye contact drifting — refocus.'
-              : 'Eye contact lost.'}
+              : eye.quality === 'weak' ? (Math.abs(eye.headYaw) > 10 ? `Turn ${eye.headYaw > 0 ? 'right' : 'left'} to face camera` : 'Eyes drifting — refocus on the lens')
+              : (Math.abs(eye.headYaw) > 15 ? `Head turned ${Math.abs(eye.headYaw)}° — face the camera` : 'Look at the camera lens')}
           </div>
         }
         center={
