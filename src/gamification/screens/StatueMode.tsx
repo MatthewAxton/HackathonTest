@@ -38,6 +38,7 @@ export default function StatueMode() {
   const alertCount = useRef(0)
   const composureRef = useRef(100)
   const finished = useRef(false)
+  const finishRef = useRef<() => void>(() => {})
 
   // Auto-start when playing
   useEffect(() => {
@@ -93,19 +94,21 @@ export default function StatueMode() {
     nav('/score/statue')
   }, [nav, prompt])
 
+  finishRef.current = finishGame
+
   // Timer
   useEffect(() => {
     if (!ready) return
     const t = setInterval(() => setTime(p => {
       if (p <= 1) {
         clearInterval(t)
-        finishGame()
+        finishRef.current()
         return 0
       }
       return p - 1
     }), 1000)
     return () => clearInterval(t)
-  }, [nav, ready, finishGame])
+  }, [nav, ready])
 
   if (!hasScans) return null
 

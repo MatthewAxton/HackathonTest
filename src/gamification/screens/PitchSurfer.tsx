@@ -42,6 +42,7 @@ export default function PitchSurfer() {
   const pitchBuffer = useRef<number[]>([])
   const monotoneSeconds = useRef(0)
   const finished = useRef(false)
+  const finishRef = useRef<() => void>(() => {})
 
   // Start when phase becomes 'playing'
   useEffect(() => {
@@ -126,20 +127,22 @@ export default function PitchSurfer() {
     nav('/score/pitch')
   }, [stopMic, gameDuration, time, nav, prompt])
 
+  finishRef.current = finishGame
+
   useEffect(() => {
     if (!ready) return
     const t = setInterval(() => {
       setTime(p => {
         if (p <= 1) {
           clearInterval(t)
-          finishGame()
+          finishRef.current()
           return 0
         }
         return p - 1
       })
     }, 1000)
     return () => clearInterval(t)
-  }, [nav, ready, finishGame])
+  }, [nav, ready])
 
   if (!hasScans) return null
   if (phase === 'intro') return (

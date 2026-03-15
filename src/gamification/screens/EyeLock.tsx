@@ -17,9 +17,9 @@ import type { Difficulty } from '../../analysis/types'
 const QUALITY_COLORS = { good: '#58CC02', weak: '#F5A623', lost: '#FF4B4B' }
 
 const DIFFICULTY_CONFIG: Record<Difficulty, { duration: number; chargeRate: number; drainRate: number; tip: string }> = {
-  easy:   { duration: 45, chargeRate: 6, drainRate: 5,  tip: 'Relax your shoulders and breathe.' },
-  medium: { duration: 45, chargeRate: 5, drainRate: 8,  tip: 'The ring drains faster — stay locked in!' },
-  hard:   { duration: 60, chargeRate: 4, drainRate: 12, tip: 'Strict mode — looking away costs you fast!' },
+  easy:   { duration: 45, chargeRate: 5, drainRate: 8,  tip: 'Relax your shoulders and breathe.' },
+  medium: { duration: 60, chargeRate: 4, drainRate: 12, tip: 'The ring drains faster — stay locked in!' },
+  hard:   { duration: 75, chargeRate: 3, drainRate: 18, tip: 'Strict mode — looking away costs you fast!' },
 }
 
 const glassCard: React.CSSProperties = {
@@ -48,6 +48,7 @@ export default function EyeLock() {
   const [lostWarning, setLostWarning] = useState(false)
   const [streakFlash, setStreakFlash] = useState(0)
   const finished = useRef(false)
+  const finishRef = useRef<() => void>(() => {})
   const lastQualityRef = useRef<string>('lost')
   const lostSoundCooldown = useRef(0)
 
@@ -143,19 +144,22 @@ export default function EyeLock() {
     nav('/score/eyelock')
   }, [eye, nav, prompt])
 
-  // Timer
+  // Keep ref in sync so timer can call it without re-creating the interval
+  finishRef.current = finishGame
+
+  // Timer — uses ref to avoid dependency on finishGame
   useEffect(() => {
     if (!ready) return
     const t = setInterval(() => setTime(p => {
       if (p <= 1) {
         clearInterval(t)
-        finishGame()
+        finishRef.current()
         return 0
       }
       return p - 1
     }), 1000)
     return () => clearInterval(t)
-  }, [nav, ready, finishGame])
+  }, [ready])
 
   if (!hasScans) return null
   if (phase === 'intro') return (

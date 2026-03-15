@@ -61,6 +61,7 @@ export default function StagePresence() {
   const badHabitCountRef = useRef(0)
   const presenceAccum = useRef<number[]>([])
   const finished = useRef(false)
+  const finishRef = useRef<() => void>(() => {})
   const lastCalloutTime = useRef(0)
 
   const addCallout = useCallback((text: string, positive: boolean) => {
@@ -156,19 +157,21 @@ export default function StagePresence() {
     nav('/score/statue')
   }, [nav, prompt])
 
+  finishRef.current = finishGame
+
   // Timer
   useEffect(() => {
     if (!ready) return
     const t = setInterval(() => setTime(p => {
       if (p <= 1) {
         clearInterval(t)
-        finishGame()
+        finishRef.current()
         return 0
       }
       return p - 1
     }), 1000)
     return () => clearInterval(t)
-  }, [nav, ready, finishGame])
+  }, [nav, ready])
 
   if (!hasScans) return null
 
