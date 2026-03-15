@@ -22,9 +22,9 @@ const FLOAT_DURATIONS = [18, 24, 15, 30, 20, 12, 26, 22]
 const FLOAT_DELAYS = [0, 3, 7, 1, 5, 9, 2, 6]
 
 const DIFFICULTY_CONFIG: Record<Difficulty, { duration: number; silenceTimeout: number; penaltyMultiplier: number; hideFillerList: boolean; tip: string }> = {
-  easy:   { duration: 90,  silenceTimeout: 5000, penaltyMultiplier: 1, hideFillerList: false, tip: 'Take your time — pauses are better than fillers!' },
-  medium: { duration: 90,  silenceTimeout: 4000, penaltyMultiplier: 1, hideFillerList: true,  tip: 'No filler list this time — trust your instincts.' },
-  hard:   { duration: 120, silenceTimeout: 3000, penaltyMultiplier: 2, hideFillerList: true,  tip: 'Strict rules — every filler costs double!' },
+  easy:   { duration: 60,  silenceTimeout: 5000, penaltyMultiplier: 1, hideFillerList: false, tip: 'Take your time — pauses are better than fillers!' },
+  medium: { duration: 60,  silenceTimeout: 4000, penaltyMultiplier: 1, hideFillerList: true,  tip: 'No filler list this time — trust your instincts.' },
+  hard:   { duration: 90,  silenceTimeout: 3000, penaltyMultiplier: 2, hideFillerList: true,  tip: 'Strict rules — every filler costs double!' },
 }
 
 export default function FillerNinja() {
@@ -207,7 +207,7 @@ export default function FillerNinja() {
       </div>
 
       <TopBanner backTo="/queue" title="Filler Ninja"
-        center={<><span style={{ background: silent ? 'rgba(252,211,77,0.2)' : 'rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: 12, fontSize: 15, fontWeight: 800, transition: 'background 0.3s' }}>0:{time.toString().padStart(2, '0')}{silent && <span style={{ fontSize: 10, fontWeight: 700, color: '#FCD34D', marginLeft: 6 }}>PAUSED</span>}</span><div style={{ width: 160, height: 8, background: 'rgba(255,255,255,0.2)', borderRadius: 4, overflow: 'hidden' }}><motion.div animate={{ width: `${((gameDuration-time)/gameDuration)*100}%` }} style={{ height: '100%', background: silent ? '#FCD34D' : 'var(--purple)', borderRadius: 4, transition: 'background 0.3s' }} /></div></>}
+        center={<><span style={{ background: silent ? 'rgba(252,211,77,0.2)' : 'rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: 12, fontSize: 15, fontWeight: 800, transition: 'background 0.3s' }}>{Math.floor(time / 60)}:{(time % 60).toString().padStart(2, '0')}{silent && <span style={{ fontSize: 10, fontWeight: 700, color: '#FCD34D', marginLeft: 6 }}>PAUSED</span>}</span><div style={{ width: 160, height: 8, background: 'rgba(255,255,255,0.2)', borderRadius: 4, overflow: 'hidden' }}><motion.div animate={{ width: `${((gameDuration-time)/gameDuration)*100}%` }} style={{ height: '100%', background: silent ? '#FCD34D' : 'var(--purple)', borderRadius: 4, transition: 'background 0.3s' }} /></div></>}
         right={<><span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700 }}><Zap size={14} /> {fillers}</span><span style={{ background: `${difficulty === 'hard' ? '#FF4B4B' : difficulty === 'medium' ? '#FCD34D' : '#58CC02'}30`, color: difficulty === 'hard' ? '#FF4B4B' : difficulty === 'medium' ? '#FCD34D' : '#58CC02', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 8, textTransform: 'uppercase' }}>{difficulty}</span></>} />
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         <div style={{ width: '100%', maxWidth: 960, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 40px' }}>
