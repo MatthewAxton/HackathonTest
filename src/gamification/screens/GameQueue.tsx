@@ -78,10 +78,10 @@ export default function GameQueue() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          style={{ width: 360, flexShrink: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '24px 24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', overflow: 'auto' }}
+          style={{ width: 360, flexShrink: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '24px 24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, overflow: 'hidden' }}
         >
           {/* Score + Grade row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} style={{ fontSize: 52, fontWeight: 900, lineHeight: 1, background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{Math.round(scores.overall)}</motion.div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Speech<span style={{ color: 'var(--purple)' }}>MAX</span></div>
@@ -92,18 +92,19 @@ export default function GameQueue() {
           </div>
 
           {/* Radar chart */}
-          <div style={{ overflow: 'visible', width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+          <div style={{ overflow: 'visible', display: 'flex', justifyContent: 'center', position: 'relative' }}>
             {/* Glow behind radar */}
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle, rgba(194,143,231,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(194,143,231,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
             <RadarChart
               scores={{ clarity: scores.clarity, confidence: scores.confidence, pacing: scores.pacing, expression: scores.expression, composure: scores.composure }}
-              size={220}
+              size={200}
               animated={false}
+              showValues={false}
             />
           </div>
 
           {/* Per-axis breakdown bars */}
-          <div style={{ width: '100%', marginTop: 4 }}>
+          <div style={{ width: '100%' }}>
             {([
               { key: 'clarity' as const, label: 'Clarity', icon: Crosshair },
               { key: 'confidence' as const, label: 'Confidence', icon: Eye },
