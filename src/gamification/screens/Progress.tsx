@@ -36,7 +36,7 @@ export default function Progress() {
   const stats = [
     { label: 'Scans', value: totalScans, icon: Target },
     { label: 'Games', value: totalGames, icon: Gamepad2 },
-    { label: 'Streak', value: `${streakDays || 0}🔥`, icon: Flame },
+    { label: 'Streak', value: `${streakDays || 0} days`, icon: Flame },
   ]
 
   const bests = [
