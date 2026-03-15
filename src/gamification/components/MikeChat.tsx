@@ -181,7 +181,7 @@ export default function MikeChat() {
                 >
                   {msg.role === 'model' && (
                     <img
-                      src={i === messages.length - 1 && mikeAvatar} alt="Mike"
+                      src={i === messages.length - 1 && isTalking ? mikeAvatar : '/IDLE.gif'} alt="Mike"
                       style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0 }}
                     />
                   )}
