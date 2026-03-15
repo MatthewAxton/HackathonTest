@@ -75,15 +75,20 @@ export default function MikeChat() {
     setIsTalking(true)
     setTalkingKey(k => k + 1)
 
-    const geminiMessages = [
-      { role: 'user' as const, text: systemPromptRef.current ?? buildMikeSystemPrompt() },
-      { role: 'model' as const, text: 'Understood! I\'m Mike, ready to help with speech coaching based on the user\'s data.' },
-      ...updatedMessages,
-    ]
+    try {
+      const geminiMessages = [
+        { role: 'user' as const, text: systemPromptRef.current ?? buildMikeSystemPrompt() },
+        { role: 'model' as const, text: 'Understood! I\'m Mike, ready to help with speech coaching based on the user\'s data.' },
+        ...updatedMessages,
+      ]
 
-    const response = await sendToGemini(geminiMessages)
-    setMessages((prev) => [...prev, { role: 'model', text: response }])
-    setLoading(false)
+      const response = await sendToGemini(geminiMessages)
+      setMessages((prev) => [...prev, { role: 'model', text: response }])
+    } catch {
+      setMessages((prev) => [...prev, { role: 'model', text: "Oops, something went wrong. Try again!" }])
+    } finally {
+      setLoading(false)
+    }
   }, [input, loading, messages])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -151,7 +156,7 @@ export default function MikeChat() {
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)',
             }}>
-              <img src="/IDLE.gif" alt="Mike" style={{ width: 32, height: 32, borderRadius: '50%' }} />
+              <img src={isTalking ? `/talking.gif?k=${talkingKey}` : '/IDLE.gif'} alt="Mike" style={{ width: 32, height: 32, borderRadius: '50%' }} />
               <span style={{ fontSize: 15, fontWeight: 700, flex: 1 }}>Chat with Mike</span>
               <button
                 onClick={() => setIsOpen(false)}

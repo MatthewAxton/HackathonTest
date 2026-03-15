@@ -14,6 +14,9 @@ export async function sendToGemini(messages: GeminiMessage[]): Promise<string> {
       return "Not authenticated. Please refresh the page."
     }
 
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30000)
+
     const res = await fetch(`${SUPABASE_URL}/functions/v1/gemini-proxy`, {
       method: 'POST',
       headers: {
@@ -26,11 +29,14 @@ export async function sendToGemini(messages: GeminiMessage[]): Promise<string> {
           parts: [{ text: m.text }],
         })),
       }),
+      signal: controller.signal,
     })
+
+    clearTimeout(timeout)
 
     if (!res.ok) {
       const errText = await res.text()
-      console.error('Gemini proxy error:', errText)
+      console.error('Gemini proxy error:', res.status, errText)
       return "Sorry, I'm having trouble connecting right now. Try again in a moment!"
     }
 

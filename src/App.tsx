@@ -1,13 +1,11 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LiquidGlassPill } from 'anam-react-liquid-glass'
 import PaperWaveBackground from './components/PaperWaveBackground'
 import GamificationLayout from './gamification/GamificationLayout'
-import { DevMenu } from './gamification/components/DevMenu'
 import { TalkingBubble } from './gamification/components/Mike'
 import { ErrorBoundary } from './components/ErrorBoundary'
-import { AuthProvider } from './lib/auth'
+import { AuthProvider, useAuth } from './lib/auth'
 import './App.css'
 
 const RadarScan = lazy(() => import('./gamification/screens/RadarScan'))
@@ -35,7 +33,7 @@ export default function App() {
         <ErrorBoundary>
           <AnimatedRoutes />
         </ErrorBoundary>
-        {import.meta.env.DEV && <DevMenu />}
+  
       </BrowserRouter>
     </AuthProvider>
   )
@@ -102,20 +100,22 @@ function NotFound() {
    EVERYTHING BELOW IS YOUR ORIGINAL HOMEPAGE — UNCHANGED
    ==================================================================== */
 
-export type Screen = 'splash'
-
-// Mascot positions for each screen
-const mascotPositions: Record<Screen, { x: string; y: string; size: number; gif: string }> = {
-  splash: { x: '50%', y: '50%', size: 256, gif: '/IDLE.gif' },
-}
-
 function Homepage() {
-  const [screen, setScreen] = useState<Screen>('splash')
   const navigate = useNavigate()
-  const pos = mascotPositions[screen]
+  const { signInWithGoogle, isAnonymous, isLoading } = useAuth()
 
-  // Go straight to onboarding (goal selection is handled there now)
-  const handleStart = () => navigate('/onboarding')
+  // If already authenticated (returning Google user), skip to onboarding/queue
+  useEffect(() => {
+    if (!isLoading && !isAnonymous) {
+      navigate('/onboarding', { replace: true })
+    }
+  }, [isLoading, isAnonymous, navigate])
+
+  const handleGuest = () => navigate('/onboarding')
+
+  const handleGoogle = async () => {
+    await signInWithGoogle()
+  }
 
   return (
     <div
@@ -124,56 +124,136 @@ function Homepage() {
     >
       <PaperWaveBackground />
 
-      {/* Mascot — shared element that smoothly moves between screens */}
+      {/* Mascot */}
       <motion.img
-        src={pos.gif}
+        src="/IDLE.gif"
         alt="mascot"
         className="absolute z-30 object-contain drop-shadow-lg pointer-events-none"
         animate={{
-          left: pos.x,
-          top: pos.y,
-          width: pos.size,
-          height: pos.size,
+          left: '50%',
+          top: '50%',
+          width: 256,
+          height: 256,
           x: '-50%',
           y: '-50%',
         }}
         transition={{ type: 'spring', stiffness: 80, damping: 18, mass: 1 }}
       />
 
-      {/* Speech bubble — follows mascot */}
-      <AnimatePresence mode="wait">
-        {screen === 'splash' && (
-          <motion.div
-            key="bubble-splash"
-            className="absolute z-30 pointer-events-none"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              left: '50%',
-              top: 'calc(50% - 155px)',
-              x: '-50%',
-            }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ type: 'spring', stiffness: 80, damping: 18 }}
-          >
-            <div className="glass px-6 py-3 rounded-2xl">
-              <SplashBubbleText />
-            </div>
-            <div
-              className="absolute left-1/2 -translate-x-1/2 -bottom-[6px] w-0 h-0"
-              style={{ borderLeft: '7px solid transparent', borderRight: '7px solid transparent', borderTop: '7px solid rgba(255,255,255,0.08)' }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Speech bubble */}
+      <motion.div
+        className="absolute z-30 pointer-events-none"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          left: '50%',
+          top: 'calc(50% - 155px)',
+          x: '-50%',
+        }}
+        transition={{ type: 'spring', stiffness: 80, damping: 18 }}
+      >
+        <div className="glass px-6 py-3 rounded-2xl">
+          <SplashBubbleText />
+        </div>
+        <div
+          className="absolute left-1/2 -translate-x-1/2 -bottom-[6px] w-0 h-0"
+          style={{ borderLeft: '7px solid transparent', borderRight: '7px solid transparent', borderTop: '7px solid rgba(255,255,255,0.08)' }}
+        />
+      </motion.div>
 
-      {/* Screen content */}
-      <AnimatePresence mode="wait">
-        {screen === 'splash' && (
-          <SplashContent key="splash" onNext={handleStart} />
-        )}
-      </AnimatePresence>
+      {/* Content */}
+      <motion.div
+        className="absolute inset-0 z-20 flex flex-col items-center justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+      >
+        {/* Logo */}
+        <motion.h1
+          className="text-[72px] font-bold tracking-tight text-center"
+          style={{ color: '#f5f5f5' }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+        >
+          Speech<span style={{ color: '#c28fe7' }}>MAX</span>
+        </motion.h1>
+
+        <div className="h-16" />
+        <div style={{ height: 240 }} />
+        <div className="h-8" />
+
+        {/* Auth buttons */}
+        <div className="w-full max-w-[320px] px-6 flex flex-col items-center gap-3">
+          {/* Google Sign In */}
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            onClick={handleGoogle}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: 18, padding: '14px 20px', cursor: 'pointer',
+              fontSize: 15, fontWeight: 700, color: 'rgba(255,255,255,0.9)',
+              transition: 'background 0.2s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.14)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Continue with Google
+          </motion.button>
+
+          {/* Divider */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.4 }}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '2px 0' }}
+          >
+            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 1 }}>or</span>
+            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
+          </motion.div>
+
+          {/* Continue as Guest */}
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+            onClick={handleGuest}
+            style={{
+              width: '100%',
+              background: '#c28fe7',
+              border: 'none',
+              borderRadius: 18, padding: '14px 20px', cursor: 'pointer',
+              fontSize: 15, fontWeight: 700, color: 'white',
+              transition: 'filter 0.2s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.1)')}
+            onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
+          >
+            Continue as Guest
+          </motion.button>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9, duration: 0.4 }}
+            style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.25)', textAlign: 'center', lineHeight: 1.5, marginTop: 4 }}
+          >
+            Sign in to sync your progress across devices
+          </motion.p>
+        </div>
+      </motion.div>
     </div>
   )
 }
@@ -201,60 +281,6 @@ function SplashBubbleText() {
         )}
       </AnimatePresence>
     </span>
-  )
-}
-
-/* ====== SPLASH CONTENT ====== */
-function SplashContent({ onNext }: { onNext: () => void }) {
-  return (
-    <motion.div
-      className="absolute inset-0 z-20 flex flex-col items-center justify-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, y: -40 }}
-      transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-    >
-      {/* Logo */}
-      <motion.h1
-        className="text-[72px] font-bold tracking-tight text-center"
-        style={{ color: '#f5f5f5' }}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.6 }}
-      >
-        Speech<span style={{ color: '#c28fe7' }}>MAX</span>
-      </motion.h1>
-
-      <div className="h-16" />
-
-      {/* Mascot spacer (mascot is abs positioned in App) */}
-      <div style={{ height: 240 }} />
-
-      <div className="h-16" />
-
-      {/* Primary CTA */}
-      <div className="w-full max-w-[320px] px-6 flex flex-col items-center gap-4">
-        <motion.div
-          className="w-full"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-        >
-          <LiquidGlassPill
-            onClick={onNext}
-            tiltMax={4}
-            shineSize={240}
-            borderRadius="18px"
-            style={{ background: '#c28fe7', width: '100%' }}
-          >
-            <div className="py-4 text-[16px] font-bold text-white text-center w-full cursor-pointer tracking-wide">
-              START PRACTICING
-            </div>
-          </LiquidGlassPill>
-        </motion.div>
-
-      </div>
-    </motion.div>
   )
 }
 
