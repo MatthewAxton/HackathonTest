@@ -1,5 +1,5 @@
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${API_KEY}`
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`
 
 interface GeminiMessage {
   role: 'user' | 'model'
