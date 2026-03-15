@@ -10,11 +10,10 @@ import { onTranscript } from './transcriber'
 type FillerCallback = (event: FillerEvent) => void
 
 const FILLER_WORDS = [
+  // Vocal hesitations — the universal fillers
   'um', 'uh', 'uhh', 'umm', 'er', 'ah', 'hmm',
-  'like', 'you know', 'basically', 'right',
-  'so', 'actually', 'literally', 'i mean',
-  'kind of', 'sort of', 'well', 'okay so',
-  'honestly', 'yeah', 'just', 'i guess',
+  // Discourse fillers — words used as crutches
+  'like', 'you know', 'i mean', 'basically', 'actually', 'right',
 ]
 
 // Build regex patterns — whole-word, case-insensitive
