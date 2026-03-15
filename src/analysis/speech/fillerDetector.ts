@@ -9,15 +9,21 @@ import { onTranscript } from './transcriber'
 
 type FillerCallback = (event: FillerEvent) => void
 
-const FILLER_WORDS = [
+const SIMPLE_FILLERS = [
   // Vocal hesitations — the universal fillers
   'um', 'uh', 'uhh', 'umm', 'er', 'ah', 'hmm',
-  // Discourse fillers — words used as crutches
-  'like', 'you know', 'i mean', 'basically', 'actually', 'right',
+  // Discourse fillers — words used as crutches (no "like" — handled separately)
+  'you know', 'i mean', 'basically', 'actually', 'right',
 ]
 
+// "like" is only a filler when NOT used as verb/preposition
+// Filler: "I was like going..." / "it's like really hard" / "like I don't know"
+// Not filler: "I like pizza" / "looks like that" / "like a pro"
+const LIKE_NOT_FILLER_BEFORE = /\b(i|we|they|you|he|she|it|who|would|might|could|don't|didn't|doesn't|do|does|really|also|still)\s+$/i
+const LIKE_NOT_FILLER_AFTER = /^\s+(that|this|it|a|an|the|to|of|in|my|his|her|your|our|their)\b/i
+
 // Build regex patterns — whole-word, case-insensitive
-const FILLER_PATTERNS = FILLER_WORDS.map((word) => ({
+const FILLER_PATTERNS = SIMPLE_FILLERS.map((word) => ({
   word,
   regex: new RegExp(`\\b${word.replace(/\s+/g, '\\s+')}\\b`, 'gi'),
 }))
@@ -38,19 +44,32 @@ function countMatches(text: string, regex: RegExp): number {
   return count
 }
 
+function countContextualLike(text: string): number {
+  const likeRegex = /\blike\b/gi
+  let count = 0
+  let match: RegExpExecArray | null
+  while ((match = likeRegex.exec(text)) !== null) {
+    const before = text.slice(0, match.index)
+    const after = text.slice(match.index + match[0].length)
+    // Skip if preceded by subject/verb or followed by determiner/pronoun
+    if (LIKE_NOT_FILLER_BEFORE.test(before)) continue
+    if (LIKE_NOT_FILLER_AFTER.test(after)) continue
+    count++
+  }
+  return count
+}
+
 function processTranscript(event: TranscriptEvent) {
   const text = event.text
   if (!text || text === lastInterimText) return
   lastInterimText = text
 
-  // For each filler word, count occurrences in current text
-  // If count increased since last check, emit new detections
+  // Check simple fillers
   for (const { word, regex } of FILLER_PATTERNS) {
     const currentCount = countMatches(text, regex)
     const previousCount = interimFillerCounts.get(word) || 0
 
     if (currentCount > previousCount) {
-      // New filler(s) detected in this segment
       const newDetections = currentCount - previousCount
       for (let i = 0; i < newDetections; i++) {
         totalFillerCount++
@@ -63,6 +82,22 @@ function processTranscript(event: TranscriptEvent) {
       }
       interimFillerCounts.set(word, currentCount)
     }
+  }
+
+  // Check "like" with context awareness
+  const likeCount = countContextualLike(text)
+  const prevLikeCount = interimFillerCounts.get('like') || 0
+  if (likeCount > prevLikeCount) {
+    const newDetections = likeCount - prevLikeCount
+    for (let i = 0; i < newDetections; i++) {
+      totalFillerCount++
+      subscribers.forEach((cb) => cb({
+        word: 'like',
+        timestamp: event.timestamp,
+        index: totalFillerCount,
+      }))
+    }
+    interimFillerCounts.set('like', likeCount)
   }
 
   // On final result, reset for next segment
