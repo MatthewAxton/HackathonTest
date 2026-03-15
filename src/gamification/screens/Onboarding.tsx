@@ -26,6 +26,7 @@ export default function Onboarding() {
   const nav = useNavigate()
   const [step, setStep] = useState(0)
   const [selectedGoal, setSelectedGoal] = useState<UserGoal | null>(null)
+  const [countdown, setCountdown] = useState<number | null>(null)
   const setUserGoal = useSessionStore((s) => s.setUserGoal)
   const existingGoal = useSessionStore((s) => s.userGoal)
   const hasScans = useScanStore((s) => s.scans.length > 0)
@@ -36,6 +37,17 @@ export default function Onboarding() {
       nav(hasScans ? '/queue' : '/scan', { replace: true })
     }
   }, [existingGoal, hasScans, nav])
+
+  // Countdown timer
+  useEffect(() => {
+    if (countdown === null) return
+    if (countdown <= 0) {
+      nav('/scan')
+      return
+    }
+    const t = setTimeout(() => setCountdown(countdown - 1), 1000)
+    return () => clearTimeout(t)
+  }, [countdown, nav])
 
   return (
     <div style={{
@@ -154,7 +166,7 @@ export default function Onboarding() {
           </motion.div>
         )}
 
-        {/* Slide 3 — Camera Permission */}
+        {/* Slide 3 — Camera Permission + Countdown */}
         {step === 2 && (
           <motion.div
             key="slide-2"
@@ -165,28 +177,60 @@ export default function Onboarding() {
             transition={{ duration: 0.4, ease }}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 400 }}
           >
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <Mike state="talking" size={100} />
-            </motion.div>
+            {countdown !== null ? (
+              /* Countdown overlay */
+              <motion.div
+                key="countdown"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}
+              >
+                <Mike state="talking" size={100} />
+                <motion.div
+                  key={countdown}
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                  style={{
+                    width: 120, height: 120, borderRadius: '50%',
+                    background: 'rgba(194,143,231,0.15)', border: '3px solid #C28FE7',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: countdown > 0 ? 56 : 28, fontWeight: 900, color: '#C28FE7',
+                  }}
+                >
+                  {countdown > 0 ? countdown : 'GO!'}
+                </motion.div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
+                  Starting your scan...
+                </div>
+              </motion.div>
+            ) : (
+              /* Ready screen */
+              <>
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <Mike state="talking" size={100} />
+                </motion.div>
 
-            <div style={{ marginTop: 20, background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '2px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '18px 24px', fontSize: 18, fontWeight: 700, lineHeight: 1.5, color: 'var(--text, rgba(255,255,255,0.9))', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
-              <TalkingBubble text="I need to <strong style='color:#C28FE7'>see and hear</strong> you. Ready?" />
-            </div>
+                <div style={{ marginTop: 20, background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '2px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '18px 24px', fontSize: 18, fontWeight: 700, lineHeight: 1.5, color: 'var(--text, rgba(255,255,255,0.9))', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
+                  <TalkingBubble text="I need to <strong style='color:#C28FE7'>see and hear</strong> you. Ready?" />
+                </div>
 
-            <button
-              className="btn-primary"
-              style={{ marginTop: 32, width: '100%', maxWidth: 320 }}
-              onClick={() => nav('/scan')}
-            >
-              Start My Scan
-            </button>
+                <button
+                  className="btn-primary"
+                  style={{ marginTop: 32, width: '100%', maxWidth: 320 }}
+                  onClick={() => setCountdown(3)}
+                >
+                  Start My Scan
+                </button>
 
-            <div style={{ marginTop: 12, fontSize: 12, color: 'var(--muted, #777)', fontWeight: 500 }}>
-              We never store your video or audio
-            </div>
+                <div style={{ marginTop: 12, fontSize: 12, color: 'var(--muted, #777)', fontWeight: 500 }}>
+                  We never store your video or audio
+                </div>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
