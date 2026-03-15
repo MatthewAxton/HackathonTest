@@ -146,7 +146,7 @@ export default function ScoreCard() {
   const improvement = currentScore - prevScore
   const metrics = lastResult?.metrics ?? {}
   const stats = getStats(game || 'filler', metrics)
-  const message = getMessage(currentScore, config.axis)
+  void getMessage(currentScore, config.axis)
   const coachingTip = getCoachingTip(game || 'filler', metrics)
 
   // Compute next game from recommended order

@@ -90,7 +90,7 @@ export default function RadarResults() {
       <TopBanner title={<>Speech<span style={{ color: 'var(--purple)' }}>MAX</span></>} showBack={false} right={<span style={{ fontSize: 13, opacity: 0.8 }}>Today, {new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>} />
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         <div style={{ width: '100%', maxWidth: 1060, display: 'flex', gap: 56, padding: '8px 48px', alignItems: 'center' }}>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }} style={{ width: 380, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }} style={{ width: 380, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <MikeWithBubble
               text={`Here's your profile! Let's work on <strong style='color:var(--purple)'>${weakestName}</strong> first.`}
               state="talking"
@@ -116,7 +116,7 @@ export default function RadarResults() {
               />
             )}
           </motion.div>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }} style={{ flex: 1, overflow: 'hidden' }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }} style={{ flex: 1, overflow: 'hidden' }}>
             <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--muted)', marginBottom: 14 }}>Per-Axis Breakdown</div>
             {axes.map((a, i) => (
               <motion.div key={a.name} initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.3 + i*0.15 }} style={{ marginBottom: 14 }}>

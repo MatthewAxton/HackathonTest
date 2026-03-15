@@ -33,7 +33,7 @@ export default function StepChallenges({ onNext, onBack, progress }: Props) {
       initial={{ opacity: 0, x: 60 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -60 }}
-      transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }}
     >
       <ProgressBar progress={progress} onBack={onBack} />
 
@@ -58,7 +58,7 @@ export default function StepChallenges({ onNext, onBack, progress }: Props) {
         {OPTIONS.map((opt, i) => (
           <OptionCard
             key={opt.title}
-            emoji={opt.emoji}
+            icon={opt.emoji}
             title={opt.title}
             description={opt.desc}
             selected={selected.has(i)}

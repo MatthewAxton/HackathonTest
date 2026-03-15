@@ -22,7 +22,7 @@ export default function ProgressBar({ progress, onBack }: Props) {
           className="h-full rounded-full bg-gradient-to-r from-primary to-primary-light"
           initial={{ width: 0 }}
           animate={{ width: `${progress * 100}%` }}
-          transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+          transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }}
         />
       </div>
     </div>

@@ -1,3 +1,23 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare class SpeechRecognition extends EventTarget {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  maxAlternatives: number
+  start(): void
+  stop(): void
+  abort(): void
+  onresult: ((event: any) => void) | null
+  onerror: ((event: any) => void) | null
+  onend: (() => void) | null
+}
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition
+    webkitSpeechRecognition: typeof SpeechRecognition
+  }
+}
+
 /**
  * E3.R1 — Web Speech API Transcriber
  * Wraps the browser's speech recognition API with auto-restart and pub/sub.
@@ -5,17 +25,6 @@
 import type { TranscriptEvent } from '../types'
 
 type TranscriptCallback = (event: TranscriptEvent) => void
-
-// Extend window for webkit prefix
-interface SpeechRecognitionConstructor {
-  new (): SpeechRecognition
-}
-
-declare global {
-  interface Window {
-    webkitSpeechRecognition?: SpeechRecognitionConstructor
-  }
-}
 
 // Simulation fallback sentences
 const SIM_SENTENCES = [
@@ -77,7 +86,7 @@ function createRecognition(): SpeechRecognition {
   rec.maxAlternatives = 3
   rec.lang = 'en-US'
 
-  rec.onresult = (event: SpeechRecognitionEvent) => {
+  rec.onresult = (event: any) => {
     resultReceived = true
     lastError = null
     if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null }

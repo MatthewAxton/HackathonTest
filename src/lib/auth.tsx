@@ -60,14 +60,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
+    supabase.auth.getSession().then(({ data: { session: s } }: any) => {
       setSession(s)
       setUser(s?.user ?? null)
 
       if (s?.user) {
         migrateLocalStorage(s.user.id).then(() => hydrate())
       } else {
-        supabase.auth.signInAnonymously().then(({ error }) => {
+        supabase.auth.signInAnonymously().then(({ error }: any) => {
           if (error) {
             console.error('Anonymous sign-in failed:', error)
           }
@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, s) => {
+      async (_event: any, s: any) => {
         setSession(s)
         setUser(s?.user ?? null)
 

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useMotionValue, useSpring } from 'framer-motion'
 
 export default function BackgroundWaves() {
-  const [mouse, setMouse] = useState({ x: 0, y: 0 })
+  const [_mouse, setMouse] = useState({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
 
   const mx = useMotionValue(0)
