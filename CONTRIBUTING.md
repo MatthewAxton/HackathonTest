@@ -6,6 +6,17 @@
 git clone https://github.com/MatthewAxton/HackathonTest.git
 cd HackathonTest
 npm install
+```
+
+Create a `.env` file with your Gemini API key:
+
+```
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+Then start the dev server:
+
+```bash
 npm run dev
 ```
 
@@ -27,7 +38,8 @@ src/
       Banner.tsx                   # Top gradient banner
       CameraFeed.tsx               # Live webcam (supports fullscreen mode)
       AudioWave.tsx                # Audio visualizer
-      Mike.tsx                     # Mascot component
+      Mike.tsx                     # Mascot component + TalkingBubble
+      MikeChat.tsx                 # AI chat widget (Gemini 2.5 Flash)
       DevMenu.tsx                  # Dev navigation (dev only)
       EyeContactIndicator.tsx      # Gaze tracking overlay
       radar-chart/                 # Reusable radar chart
@@ -64,6 +76,9 @@ src/
     badges.ts                      # 11 badge definitions
     prompts.ts                     # Speaking prompts by category
     sounds.ts                      # Oscillator-based sound FX
+    geminiClient.ts                # Gemini API client (reads key from .env)
+    buildMikeSystemPrompt.ts       # Mike's system prompt with user data
+    goalPromptMap.ts               # Maps UserGoal → PromptCategory
 ```
 
 ## User Flow

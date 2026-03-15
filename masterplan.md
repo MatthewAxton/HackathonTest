@@ -340,6 +340,31 @@ Redesigned the left panel on GameQueue dashboard:
 
 ---
 
+## Sprint 13: Mike AI Chat + Goal-Driven Scans [COMPLETE]
+
+> Mike chat coach with animated avatar, goal-driven scan prompts, and Gemini API integration.
+
+### 13.1 — Mike AI chat widget [DONE]
+
+Added `MikeChat.tsx` floating chat widget powered by Gemini 2.5 Flash. Mike sees user's scan scores, game history, badges, and streaks via `buildMikeSystemPrompt.ts`. Responses capped at 1-2 sentences.
+
+### 13.2 — Mike talking.gif during chat responses [DONE]
+
+TalkingBubble in `Mike.tsx` now accepts `onComplete` callback. MikeChat tracks `isTalking` state — avatar shows `talking.gif` during API loading AND text typing, switches to `IDLE.gif` when done. Cache-busting query param forces GIF restart.
+
+### 13.3 — Goal-driven scan prompts [DONE]
+
+RadarScan no longer uses hardcoded passage from `wordTracker.ts`. Instead reads `userGoal` from sessionStore, maps to prompt category via `goalPromptMap.ts`, and shows a goal-appropriate speaking prompt. Live transcript displayed below prompt. Label changes: "Speak About This Topic" (default) or "Read This Aloud" (reading goal).
+
+### 13.4 — Gemini API key to .env [DONE]
+
+API key moved from hardcoded string to `VITE_GEMINI_API_KEY` env var. `.env` added to `.gitignore`. Model updated from deprecated `gemini-2.0-flash` to `gemini-2.5-flash`.
+
+**Files created:** `MikeChat.tsx`, `geminiClient.ts`, `buildMikeSystemPrompt.ts`, `.env`
+**Files modified:** `Mike.tsx`, `RadarScan.tsx`, `GamificationLayout.tsx`, `.gitignore`
+
+---
+
 ## Key Architecture
 
 | Area | Files |

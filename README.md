@@ -20,9 +20,10 @@ SpeechMAX uses your webcam, microphone, and cutting-edge browser APIs to analyze
 | Pitch variation analysis | Web Audio API | Post-hoc | Post-hoc | Real-time |
 | Gamified training | 5 mini-games | No | No | No |
 | Runs in browser (no install) | Yes | Yes | Mobile app | Desktop app |
-| Privacy-first (no server) | 100% client-side | Cloud | Cloud | Cloud |
+| AI speech coach chat | Gemini 2.5 Flash | GPT-4 | No | No |
+| Privacy-first (no server) | 100% client-side* | Cloud | Cloud | Cloud |
 
-**Zero data leaves your browser.** All analysis runs locally using Web APIs and MediaPipe WASM.
+**All analysis runs locally** using Web APIs and MediaPipe WASM. *The only network call is the optional Mike AI chat coach (Gemini API).
 
 ---
 
@@ -30,6 +31,17 @@ SpeechMAX uses your webcam, microphone, and cutting-edge browser APIs to analyze
 
 ```bash
 npm install
+```
+
+Create a `.env` file in the project root with your Gemini API key:
+
+```
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+Then start the dev server:
+
+```bash
 npm run dev
 ```
 
@@ -44,16 +56,20 @@ npm run build       # Production build
 
 ## How It Works
 
-### 1. 30-Second Radar Scan
+### 1. Goal-Based Onboarding
 
-Speak naturally for 30 seconds while the app captures:
+Choose what you're practicing for — Job Interview, Presentation, Casual Conversation, or Reading Aloud. Your goal customizes the speaking prompts throughout the app.
+
+### 2. 30-Second Radar Scan
+
+Speak about a goal-appropriate topic for 30 seconds while the app captures:
 - **Voice** — transcription, filler words, WPM, pitch variation
 - **Face** — eye contact quality via 468 facial landmarks + iris tracking
 - **Body** — posture alignment, fidget detection via 33 body keypoints
 
 Results are scored across 5 radar axes and displayed as an interactive radar chart.
 
-### 2. Targeted Mini-Games
+### 3. Targeted Mini-Games
 
 Based on your scan results, SpeechMAX recommends games to train your weakest areas:
 
@@ -67,7 +83,11 @@ Based on your scan results, SpeechMAX recommends games to train your weakest are
 
 Each game has a unique intro screen with game-specific visuals and a 3-2-1 countdown.
 
-### 3. Track Progress
+### 4. Mike — AI Speech Coach
+
+Chat with Mike, your AI speech coach powered by Gemini 2.5 Flash. Mike sees your scan scores, game history, badges, and streaks — and gives short, actionable advice. His animated avatar talks while responding.
+
+### 5. Track Progress
 
 Badges, streaks, personal bests, coaching tips, and session history — all persisted locally via localStorage.
 
@@ -97,6 +117,7 @@ Badges, streaks, personal bests, coaching tips, and session history — all pers
 | Body Tracking | MediaPipe PoseLandmarker (WASM, GPU) |
 | Speech | Web Speech API (SpeechRecognition) with noise suppression |
 | Audio | Web Audio API (autocorrelation pitch + DynamicsCompressor) |
+| AI Coach | Google Gemini 2.5 Flash (via REST API) |
 | Icons | Lucide React |
 | Sound FX | Web Audio API oscillators (no audio files) |
 
@@ -130,7 +151,7 @@ src/
     components/          #   GameIntro, CameraFeed, RadarChart, Banner, etc.
     hooks/               #   useRequireScan route guard
   store/                 # Zustand state management (all persisted)
-  lib/                   # Badges, prompts, oscillator sounds
+  lib/                   # Badges, prompts, oscillator sounds, Gemini client
   components/            # Homepage components
   App.tsx                # Routing & homepage
 ```
