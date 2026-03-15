@@ -379,7 +379,7 @@ Created `src/lib/supabase.ts` (client singleton) and `src/lib/auth.tsx` (AuthPro
 
 ### 14.3 — Gemini proxy edge function [DONE]
 
-Deployed `gemini-proxy` edge function to Supabase. Validates JWT, reads `GEMINI_API_KEY` from Supabase secrets, forwards to Gemini 2.5 Flash. Rewrote `geminiClient.ts` to call edge function instead of direct Gemini API. Removed `VITE_GEMINI_API_KEY` from client bundle entirely.
+Deployed `gemini-proxy` edge function to Supabase. Reads `GEMINI_API_KEY` from Supabase secrets (with trailing-space tolerance), forwards to Gemini 2.5 Flash. JWT verification disabled — uses anon key for access control instead (avoids expired token issues with anonymous auth). Rewrote `geminiClient.ts` to call edge function with anon key auth. Removed `VITE_GEMINI_API_KEY` from client bundle entirely.
 
 ### 14.4 — Data sync + localStorage migration [DONE]
 
@@ -400,6 +400,8 @@ Added Account card to Settings: anonymous users see "Guest User" with Google sig
 - 30s fetch timeout on Gemini proxy calls
 - Stricter system prompt: 1 sentence, max 15 words
 - Edge function handles trailing-space secret name
+- Switched from user JWT to anon key auth (fixes 401 Invalid JWT)
+- Profile fetch uses `maybeSingle()` (fixes 406 when no profile exists)
 
 ### 14.8 — Removed DevMenu [DONE]
 

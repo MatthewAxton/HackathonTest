@@ -38,7 +38,7 @@ All implementation work follows `masterplan.md` in the project root. Reference i
 - **Project ID:** `mqidbueexomhpeejvnry` (speechMAX). NEVER touch any other Supabase project.
 - **Auth:** Anonymous sign-in (automatic) + Google OAuth
 - **Tables:** `profiles`, `scan_results`, `game_results` — all with RLS
-- **Edge Functions:** `gemini-proxy` — JWT-authed proxy for Gemini API
+- **Edge Functions:** `gemini-proxy` — anon-key-authed proxy for Gemini API (no JWT verification)
 - **Secrets:** `GEMINI_API_KEY` stored as Supabase secret (never in client `.env`)
 - **Frontend env:** Only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env`
 
@@ -55,7 +55,7 @@ All implementation work follows `masterplan.md` in the project root. Reference i
 - **Auth:** `src/lib/auth.tsx` (AuthProvider + useAuth hook)
 - **Supabase Client:** `src/lib/supabase.ts` (singleton)
 - **Data Sync:** `src/lib/supabaseSync.ts` (fire-and-forget sync + localStorage migration)
-- **Gemini:** `src/lib/geminiClient.ts` (calls edge function, NOT direct Gemini API)
+- **Gemini:** `src/lib/geminiClient.ts` (calls edge function with anon key, NOT direct Gemini API)
 - **Stores:** `src/store/{scanStore,gameStore,sessionStore}.ts` (all sync to Supabase)
 - **Screens:** `src/gamification/screens/*.tsx`
 - **Game Intros:** Each game has built-in `GameIntro` phase (no shared Countdown)

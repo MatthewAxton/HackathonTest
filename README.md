@@ -66,7 +66,7 @@ SpeechMAX uses Supabase for authentication, data persistence, and API key securi
 |---------|---------|
 | **Auth** | Anonymous sign-in (zero friction) + Google OAuth |
 | **Database** | `profiles`, `scan_results`, `game_results` tables with RLS |
-| **Edge Functions** | `gemini-proxy` — proxies Gemini API calls with JWT auth |
+| **Edge Functions** | `gemini-proxy` — proxies Gemini API calls (anon key auth) |
 | **Secrets** | `GEMINI_API_KEY` stored server-side, never in client bundle |
 
 **Auth flow:**
@@ -167,7 +167,7 @@ Badges, streaks, personal bests, coaching tips, and session history — all sync
 | Body Tracking | MediaPipe PoseLandmarker (WASM, GPU) |
 | Speech | Web Speech API (SpeechRecognition) with noise suppression |
 | Audio | Web Audio API (autocorrelation pitch + DynamicsCompressor) |
-| AI Coach | Google Gemini 2.5 Flash (via Supabase Edge Function proxy) |
+| AI Coach | Google Gemini 2.5 Flash (via Supabase Edge Function proxy, anon key auth) |
 | Icons | Lucide React |
 | Sound FX | Web Audio API oscillators (no audio files) |
 

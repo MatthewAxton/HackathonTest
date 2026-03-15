@@ -83,7 +83,7 @@ src/
     supabase.ts                    # Supabase client singleton
     auth.tsx                       # AuthProvider + useAuth hook (anonymous + Google OAuth)
     supabaseSync.ts                # DB sync helpers + localStorage migration
-    geminiClient.ts                # Gemini API client (calls Edge Function, not direct)
+    geminiClient.ts                # Gemini API client (calls Edge Function with anon key)
     buildMikeSystemPrompt.ts       # Mike's system prompt with user data
     badges.ts                      # 11 badge definitions
     prompts.ts                     # Speaking prompts by category
@@ -160,7 +160,7 @@ supabase/
 
 ### Edge Functions
 
-- `gemini-proxy` — validates JWT, reads `GEMINI_API_KEY` from Supabase secrets, forwards to Gemini 2.5 Flash
+- `gemini-proxy` — reads `GEMINI_API_KEY` from Supabase secrets, forwards to Gemini 2.5 Flash (anon key auth, no JWT verification)
 
 ## Design System
 
