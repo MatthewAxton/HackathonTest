@@ -69,11 +69,14 @@ export type UserGoal = 'interview' | 'presentation' | 'casual' | 'reading'
 
 export type PromptCategory = 'casual' | 'professional' | 'interview' | 'reading'
 
+export type BadgeTier = 'bronze' | 'silver' | 'gold' | 'diamond'
+
 export interface BadgeDef {
   id: string
   name: string
   description: string
   icon: string
+  tier: BadgeTier
   check: (ctx: BadgeContext) => boolean
 }
 

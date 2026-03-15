@@ -10,6 +10,8 @@ import { useScanStore } from '../../store/scanStore'
 import { useRequireScan } from '../hooks/useRequireScan'
 import { useSessionStore } from '../../store/sessionStore'
 import BADGES from '../../lib/badges'
+import { BadgeIcon, TIER_LABEL } from '../components/BadgeIcon'
+import type { BadgeTier } from '../../analysis/types'
 
 const AXIS_NAMES = ['Clarity', 'Confidence', 'Pacing', 'Expression', 'Composure'] as const
 const AXIS_KEYS = ['clarity', 'confidence', 'pacing', 'expression', 'composure'] as const
@@ -146,26 +148,37 @@ export default function Progress() {
             {/* Badges */}
             <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
               style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: 24, flex: 1 }}>
-              <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 16 }}>Badges</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
-                {BADGES.map((badge) => {
-                  const earned = earnedBadges.has(badge.id)
-                  return (
-                    <motion.div key={badge.id} whileHover={{ scale: 1.05 }}
-                      style={{
-                        textAlign: 'center', padding: '14px 8px', borderRadius: 16,
-                        background: earned ? 'rgba(194,143,231,0.08)' : 'rgba(255,255,255,0.02)',
-                        border: earned ? '1px solid rgba(194,143,231,0.3)' : '1px solid rgba(255,255,255,0.06)',
-                        opacity: earned ? 1 : 0.35, filter: earned ? 'none' : 'grayscale(1)',
-                        boxShadow: earned ? '0 0 12px rgba(194,143,231,0.15)' : 'none',
-                        transition: 'all 0.2s',
-                      }}>
-                      <div style={{ fontSize: 32 }}>{badge.icon}</div>
-                      <div style={{ fontSize: 10, fontWeight: 700, marginTop: 6, color: earned ? 'var(--text)' : 'var(--muted)' }}>{badge.name}</div>
-                    </motion.div>
-                  )
-                })}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ fontSize: 17, fontWeight: 700 }}>Badges</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)' }}>{earnedBadges.size}/{BADGES.length} earned</div>
               </div>
+              {(['bronze', 'silver', 'gold', 'diamond'] as BadgeTier[]).map((tier) => {
+                const tierBadges = BADGES.filter(b => b.tier === tier)
+                if (tierBadges.length === 0) return null
+                return (
+                  <div key={tier} style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--muted)', marginBottom: 8 }}>{TIER_LABEL[tier]}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 10 }}>
+                      {tierBadges.map((badge) => {
+                        const earned = earnedBadges.has(badge.id)
+                        return (
+                          <motion.div key={badge.id} whileHover={{ scale: 1.05 }}
+                            title={badge.description}
+                            style={{
+                              display: 'flex', flexDirection: 'column', alignItems: 'center',
+                              textAlign: 'center', padding: '12px 6px', borderRadius: 16,
+                              background: earned ? 'rgba(255,255,255,0.03)' : 'transparent',
+                              transition: 'all 0.2s', cursor: 'default',
+                            }}>
+                            <BadgeIcon iconName={badge.icon} tier={badge.tier} earned={earned} size={26} />
+                            <div style={{ fontSize: 10, fontWeight: 700, marginTop: 8, color: earned ? 'var(--text)' : 'var(--muted)', opacity: earned ? 1 : 0.4 }}>{badge.name}</div>
+                          </motion.div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
             </motion.div>
           </div>
 

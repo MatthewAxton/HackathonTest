@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Flame, Crosshair, Eye, Activity, Waves, Shield, Award, ChevronRight, Clock, BookOpen, BarChart3, Settings } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { TalkingBubble } from '../components/Mike'
+import { BadgeIcon } from '../components/BadgeIcon'
 import { TopBanner } from '../components/Banner'
 import { GoalTrackerCard } from '../components/GoalTrackerCard'
 import { RadarChart } from '../components/radar-chart'
@@ -159,9 +160,12 @@ export default function GameQueue() {
               style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '12px 16px' }}
             >
               <Award size={18} color="var(--purple)" style={{ flexShrink: 0 }} />
-              <div style={{ display: 'flex', gap: 8, flex: 1 }}>
+              <div style={{ display: 'flex', gap: 8, flex: 1, alignItems: 'center' }}>
                 {topBadges.map(b => (
-                  <div key={b.id} title={`${b.name}: ${b.description}`} style={{ background: 'rgba(194,143,231,0.12)', border: '1px solid rgba(194,143,231,0.25)', borderRadius: 10, padding: '4px 12px', fontSize: 12, fontWeight: 700, color: 'var(--purple)', whiteSpace: 'nowrap' }}>{b.name}</div>
+                  <div key={b.id} title={`${b.name}: ${b.description}`} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(194,143,231,0.12)', border: '1px solid rgba(194,143,231,0.25)', borderRadius: 10, padding: '4px 12px', fontSize: 12, fontWeight: 700, color: 'var(--purple)', whiteSpace: 'nowrap' }}>
+                    <BadgeIcon iconName={b.icon} tier={b.tier} earned={true} size={14} />
+                    {b.name}
+                  </div>
                 ))}
               </div>
               <div onClick={() => nav('/progress')} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--muted)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
