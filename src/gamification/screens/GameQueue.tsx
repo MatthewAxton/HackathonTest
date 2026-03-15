@@ -149,7 +149,7 @@ export default function GameQueue() {
         </motion.div>
 
         {/* RIGHT — Badges + Game Library */}
-        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', gap: 12, paddingRight: 4 }}>
           {/* Top Awards */}
           {topBadges.length > 0 && (
             <motion.div

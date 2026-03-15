@@ -106,3 +106,10 @@
 
 .gamification-theme .progress-track { height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
 .gamification-theme .progress-fill { height: 100%; background: var(--purple); border-radius: 5px; transition: width 0.5s ease; }
+
+/* Thin custom scrollbar */
+.gamification-theme ::-webkit-scrollbar { width: 6px; }
+.gamification-theme ::-webkit-scrollbar-track { background: transparent; }
+.gamification-theme ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+.gamification-theme ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+.gamification-theme { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent; }
