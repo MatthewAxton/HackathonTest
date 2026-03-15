@@ -147,7 +147,7 @@ export default function MikeChat() {
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)',
             }}>
-              <img src="/IDLE.gif" alt="Mike" style={{ width: 32, height: 32, borderRadius: '50%' }} />
+              <img src={isTalking ? '/talking.gif' : '/IDLE.gif'} alt="Mike" style={{ width: 32, height: 32, borderRadius: '50%' }} />
               <span style={{ fontSize: 15, fontWeight: 700, flex: 1 }}>Chat with Mike</span>
               <button
                 onClick={() => setIsOpen(false)}
@@ -273,7 +273,7 @@ export default function MikeChat() {
           padding: 0,
         }}
       >
-        <img src="/IDLE.gif" alt="Mike" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+        <img src={isTalking ? '/talking.gif' : '/IDLE.gif'} alt="Mike" style={{ width: 40, height: 40, borderRadius: '50%' }} />
       </motion.button>
     </>
   )
