@@ -40,6 +40,7 @@ export default function RadarScan() {
   const [liveTranscript, setLiveTranscript] = useState('')
   const micStarted = useRef(false)
   const scanFinished = useRef(false)
+  const finishRef = useRef<() => void>(() => {})
 
   // Sensor accumulators
   const gazeFrames = useRef({ good: 0, total: 0 })
@@ -201,18 +202,20 @@ export default function RadarScan() {
     setPhase('analyzing')
   }, [appendRawData, completeScan])
 
+  finishRef.current = finishScan
+
   // Timer countdown
   useEffect(() => {
     const t = setInterval(() => setTime(p => {
       if (p <= 1) {
         clearInterval(t)
-        finishScan()
+        finishRef.current()
         return 0
       }
       return p - 1
     }), 1000)
     return () => clearInterval(t)
-  }, [nav, finishScan])
+  }, [])
 
   // Navigate after analyzing phase
   useEffect(() => {
@@ -306,20 +309,41 @@ export default function RadarScan() {
         </div>
       </div>
 
-      {/* Bottom-center: Prompt */}
-      <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 20, width: '90%', maxWidth: 640 }}>
-        <div style={{ ...glassCard, textAlign: 'center', padding: '16px 24px' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'rgba(255,255,255,0.35)', marginBottom: 8 }}>
+      {/* Bottom-center: Prompt + Live Transcript */}
+      <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 20, width: '90%', maxWidth: 640, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* Live transcript */}
+        <AnimatePresence>
+          {liveTranscript && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              style={{
+                ...glassCard,
+                textAlign: 'center',
+                padding: '12px 20px',
+                background: 'rgba(194,143,231,0.08)',
+                border: '1px solid rgba(194,143,231,0.2)',
+              }}
+            >
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'rgba(194,143,231,0.6)', marginBottom: 6 }}>
+                Live Transcription
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.6, color: 'rgba(255,255,255,0.85)', maxHeight: 80, overflow: 'hidden' }}>
+                "{liveTranscript}"
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Prompt */}
+        <div style={{ ...glassCard, textAlign: 'center', padding: '14px 24px' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'rgba(255,255,255,0.35)', marginBottom: 6 }}>
             {isReading ? 'Read This Aloud' : 'Speak About This Topic'}
           </div>
           <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.8, color: 'rgba(255,255,255,0.9)' }}>
             {prompt}
           </div>
-          {liveTranscript && (
-            <div style={{ marginTop: 10, fontSize: 13, fontWeight: 500, fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5, maxHeight: 60, overflow: 'hidden' }}>
-              {liveTranscript}
-            </div>
-          )}
         </div>
       </div>
 
