@@ -73,22 +73,78 @@ export default function GameQueue() {
       />
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', padding: '16px 24px', gap: 24 }}>
-        {/* LEFT — Radar + Score */}
+        {/* LEFT — Radar + Score + Axis Breakdown */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          style={{ width: 360, flexShrink: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}
+          style={{ width: 360, flexShrink: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: '24px 24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', overflow: 'auto' }}
         >
-          <div style={{ overflow: 'visible', width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <RadarChart
-            scores={{ clarity: scores.clarity, confidence: scores.confidence, pacing: scores.pacing, expression: scores.expression, composure: scores.composure }}
-            size={240}
-            animated={false}
-          />
+          {/* Score + Grade row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 4 }}>
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} style={{ fontSize: 52, fontWeight: 900, lineHeight: 1, background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{Math.round(scores.overall)}</motion.div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Speech<span style={{ color: 'var(--purple)' }}>MAX</span></div>
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.5 }} style={{ background: 'rgba(194,143,231,0.12)', border: '1px solid rgba(194,143,231,0.25)', borderRadius: 8, padding: '2px 12px', fontSize: 18, fontWeight: 800, color: 'var(--purple)', textAlign: 'center' }}>
+                {scores.overall >= 90 ? 'A+' : scores.overall >= 80 ? 'A' : scores.overall >= 70 ? 'B+' : scores.overall >= 60 ? 'B' : scores.overall >= 50 ? 'C+' : scores.overall >= 40 ? 'C' : 'D'}
+              </motion.div>
+            </div>
           </div>
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} style={{ fontSize: 48, fontWeight: 800, lineHeight: 1, marginTop: 8, background: 'linear-gradient(135deg, #C28FE7, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{Math.round(scores.overall)}</motion.div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)', marginTop: 4 }}>Your Score</div>
+
+          {/* Radar chart */}
+          <div style={{ overflow: 'visible', width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+            {/* Glow behind radar */}
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle, rgba(194,143,231,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <RadarChart
+              scores={{ clarity: scores.clarity, confidence: scores.confidence, pacing: scores.pacing, expression: scores.expression, composure: scores.composure }}
+              size={220}
+              animated={false}
+            />
+          </div>
+
+          {/* Per-axis breakdown bars */}
+          <div style={{ width: '100%', marginTop: 4 }}>
+            {([
+              { key: 'clarity' as const, label: 'Clarity', icon: Crosshair },
+              { key: 'confidence' as const, label: 'Confidence', icon: Eye },
+              { key: 'pacing' as const, label: 'Pacing', icon: Activity },
+              { key: 'expression' as const, label: 'Expression', icon: Waves },
+              { key: 'composure' as const, label: 'Composure', icon: Shield },
+            ]).map((axis, i) => {
+              const val = Math.round(scores[axis.key])
+              const barColor = val >= 70 ? '#58CC02' : val >= 40 ? '#FCD34D' : '#FF4B4B'
+              return (
+                <motion.div
+                  key={axis.key}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + i * 0.08 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0' }}
+                >
+                  <axis.icon size={13} color="var(--purple)" style={{ flexShrink: 0, opacity: 0.7 }} />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', width: 72, flexShrink: 0 }}>{axis.label}</span>
+                  <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${val}%` }}
+                      transition={{ duration: 0.8, delay: 0.5 + i * 0.08 }}
+                      style={{ height: '100%', borderRadius: 3, background: barColor }}
+                    />
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: barColor, width: 28, textAlign: 'right', flexShrink: 0 }}>{val}</span>
+                </motion.div>
+              )
+            })}
+          </div>
+
+          {/* Rescan button */}
+          <button
+            className="btn-secondary"
+            onClick={() => nav('/scan')}
+            style={{ marginTop: 12, width: '100%', height: 36, fontSize: 13 }}
+          >
+            Rescan
+          </button>
         </motion.div>
 
         {/* RIGHT — Badges + Game Library */}
