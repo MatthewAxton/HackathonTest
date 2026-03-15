@@ -22,10 +22,13 @@ export default function MikeChat() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [isTalking, setIsTalking] = useState(false)
+  const [talkingKey, setTalkingKey] = useState(0)
   const [showIntro, setShowIntro] = useState(() => !localStorage.getItem(INTRO_KEY))
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const systemPromptRef = useRef<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const mikeAvatar = isTalking ? `/talking.gif?k=${talkingKey}` : '/IDLE.gif'
 
   const hidden = HIDDEN_ROUTES.some((r) => location.pathname.startsWith(r))
 
@@ -70,6 +73,7 @@ export default function MikeChat() {
     setInput('')
     setLoading(true)
     setIsTalking(true)
+    setTalkingKey(k => k + 1)
 
     const geminiMessages = [
       { role: 'user' as const, text: systemPromptRef.current ?? buildMikeSystemPrompt() },
@@ -147,7 +151,7 @@ export default function MikeChat() {
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)',
             }}>
-              <img src={isTalking ? '/talking.gif' : '/IDLE.gif'} alt="Mike" style={{ width: 32, height: 32, borderRadius: '50%' }} />
+              <img src={mikeAvatar} alt="Mike" style={{ width: 32, height: 32, borderRadius: '50%' }} />
               <span style={{ fontSize: 15, fontWeight: 700, flex: 1 }}>Chat with Mike</span>
               <button
                 onClick={() => setIsOpen(false)}
@@ -177,7 +181,7 @@ export default function MikeChat() {
                 >
                   {msg.role === 'model' && (
                     <img
-                      src={i === messages.length - 1 && isTalking ? '/talking.gif' : '/IDLE.gif'} alt="Mike"
+                      src={i === messages.length - 1 && mikeAvatar} alt="Mike"
                       style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0 }}
                     />
                   )}
@@ -204,7 +208,7 @@ export default function MikeChat() {
 
               {loading && (
                 <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-                  <img src="/talking.gif" alt="Mike" style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0 }} />
+                  <img src={`/talking.gif?k=${talkingKey}`} alt="Mike" style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0 }} />
                   <div style={{
                     background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '16px 16px 16px 4px', padding: '10px 14px',
@@ -273,7 +277,7 @@ export default function MikeChat() {
           padding: 0,
         }}
       >
-        <img src={isTalking ? '/talking.gif' : '/IDLE.gif'} alt="Mike" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+        <img src={mikeAvatar} alt="Mike" style={{ width: 40, height: 40, borderRadius: '50%' }} />
       </motion.button>
     </>
   )
