@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { GameType, GameResult, Difficulty } from '../analysis/types'
 import { useScanStore } from './scanStore'
+import { syncGameResult } from '../lib/supabaseSync'
 
 const GAME_AXIS_MAP: Record<GameType, 'clarity' | 'confidence' | 'pacing' | 'expression' | 'composure'> = {
   'filler-ninja': 'clarity',
@@ -35,6 +36,7 @@ export const useGameStore = create<GameState>()(
     set((s) => ({
       gameHistory: [...s.gameHistory, result],
     }))
+    syncGameResult(result).catch(() => {})
   },
 
   getLastResult: (game) => {

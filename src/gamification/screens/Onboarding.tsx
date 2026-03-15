@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Briefcase, Presentation, MessageCircle, BookOpen } from 'lucide-react'
 import { Mike, TalkingBubble } from '../components/Mike'
 import { useSessionStore } from '../../store/sessionStore'
+import { useScanStore } from '../../store/scanStore'
 import type { UserGoal } from '../../analysis/types'
 
 const ease = [0.25, 0.46, 0.45, 0.94] as const
@@ -26,6 +27,15 @@ export default function Onboarding() {
   const [step, setStep] = useState(0)
   const [selectedGoal, setSelectedGoal] = useState<UserGoal | null>(null)
   const setUserGoal = useSessionStore((s) => s.setUserGoal)
+  const existingGoal = useSessionStore((s) => s.userGoal)
+  const hasScans = useScanStore((s) => s.scans.length > 0)
+
+  // Skip onboarding if user already completed it (returning user)
+  useEffect(() => {
+    if (existingGoal) {
+      nav(hasScans ? '/queue' : '/scan', { replace: true })
+    }
+  }, [existingGoal, hasScans, nav])
 
   return (
     <div style={{

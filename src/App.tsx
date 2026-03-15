@@ -7,6 +7,7 @@ import GamificationLayout from './gamification/GamificationLayout'
 import { DevMenu } from './gamification/components/DevMenu'
 import { TalkingBubble } from './gamification/components/Mike'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { AuthProvider } from './lib/auth'
 import './App.css'
 
 const RadarScan = lazy(() => import('./gamification/screens/RadarScan'))
@@ -29,12 +30,14 @@ const Settings = lazy(() => import('./gamification/screens/Settings'))
 /* ====== ROOT APP WITH ROUTER ====== */
 export default function App() {
   return (
-    <BrowserRouter>
-      <ErrorBoundary>
-        <AnimatedRoutes />
-      </ErrorBoundary>
-      {import.meta.env.DEV && <DevMenu />}
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <ErrorBoundary>
+          <AnimatedRoutes />
+        </ErrorBoundary>
+        {import.meta.env.DEV && <DevMenu />}
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 

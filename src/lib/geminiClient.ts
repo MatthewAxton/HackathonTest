@@ -1,5 +1,6 @@
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`
+import { supabase } from './supabase'
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string
 
 interface GeminiMessage {
   role: 'user' | 'model'
@@ -7,15 +8,18 @@ interface GeminiMessage {
 }
 
 export async function sendToGemini(messages: GeminiMessage[]): Promise<string> {
-  if (!API_KEY) {
-    console.error('Missing VITE_GEMINI_API_KEY in .env')
-    return "API key not configured. Add VITE_GEMINI_API_KEY to your .env file."
-  }
-
   try {
-    const res = await fetch(API_URL, {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      return "Not authenticated. Please refresh the page."
+    }
+
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/gemini-proxy`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
       body: JSON.stringify({
         contents: messages.map((m) => ({
           role: m.role,
@@ -26,7 +30,7 @@ export async function sendToGemini(messages: GeminiMessage[]): Promise<string> {
 
     if (!res.ok) {
       const errText = await res.text()
-      console.error('Gemini API error:', errText)
+      console.error('Gemini proxy error:', errText)
       return "Sorry, I'm having trouble connecting right now. Try again in a moment!"
     }
 

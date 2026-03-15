@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import type { PromptCategory, BadgeContext, GameType, UserGoal } from '../analysis/types'
 import BADGES from '../lib/badges'
 import PROMPTS from '../lib/prompts'
+import { debouncedSyncProfile } from '../lib/supabaseSync'
 
 interface PersonalBests {
   overallScore: number
@@ -69,7 +70,10 @@ export const useSessionStore = create<SessionState>()(
   preferredCamera: null,
   preferredMic: null,
 
-  setUserGoal: (goal) => set({ userGoal: goal }),
+  setUserGoal: (goal) => {
+    set({ userGoal: goal })
+    debouncedSyncProfile({ user_goal: goal })
+  },
 
   addFavoritePrompt: (prompt) => set((s) => ({
     favoritePrompts: s.favoritePrompts.includes(prompt) ? s.favoritePrompts : [...s.favoritePrompts, prompt],
@@ -77,8 +81,14 @@ export const useSessionStore = create<SessionState>()(
   removeFavoritePrompt: (prompt) => set((s) => ({
     favoritePrompts: s.favoritePrompts.filter((p) => p !== prompt),
   })),
-  setPreferredCamera: (id) => set({ preferredCamera: id }),
-  setPreferredMic: (id) => set({ preferredMic: id }),
+  setPreferredCamera: (id) => {
+    set({ preferredCamera: id })
+    debouncedSyncProfile({ preferred_camera: id })
+  },
+  setPreferredMic: (id) => {
+    set({ preferredMic: id })
+    debouncedSyncProfile({ preferred_mic: id })
+  },
   resetProgress: () => {
     localStorage.removeItem('speechmax-session')
     localStorage.removeItem('speechmax-scan')
@@ -130,6 +140,7 @@ export const useSessionStore = create<SessionState>()(
 
     if (newlyEarned.length > 0) {
       set({ earnedBadges: nextBadges })
+      debouncedSyncProfile({ earned_badges: [...nextBadges] })
     }
 
     return newlyEarned
@@ -144,6 +155,7 @@ export const useSessionStore = create<SessionState>()(
         highestGameScore: Math.max(s.personalBests.highestGameScore, bests.highestGameScore ?? 0),
       },
     }))
+    debouncedSyncProfile({ personal_bests: get().personalBests })
   },
 
   incrementStreak: () => {
@@ -161,6 +173,12 @@ export const useSessionStore = create<SessionState>()(
   recordScan: () => {
     set((s) => ({ totalScans: s.totalScans + 1 }))
     get().incrementStreak()
+    const s = get()
+    debouncedSyncProfile({
+      total_scans: s.totalScans,
+      streak_days: s.streakDays,
+      last_practice_date: s.lastPracticeDate,
+    })
   },
 
   recordGame: (game) => {
@@ -169,6 +187,13 @@ export const useSessionStore = create<SessionState>()(
       gamesPlayed: { ...s.gamesPlayed, [game]: (s.gamesPlayed[game] || 0) + 1 },
     }))
     get().incrementStreak()
+    const s = get()
+    debouncedSyncProfile({
+      total_games: s.totalGames,
+      games_played: s.gamesPlayed,
+      streak_days: s.streakDays,
+      last_practice_date: s.lastPracticeDate,
+    })
   },
 }),
     {

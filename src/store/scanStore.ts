@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { ScanResult, ScanRawData, RadarScores } from '../analysis/types'
 import { computeRadarScores } from '../analysis/scoring/radarScorer'
+import { syncScanResult } from '../lib/supabaseSync'
 
 interface ScanState {
   scans: ScanResult[]
@@ -82,6 +83,8 @@ export const useScanStore = create<ScanState>()(
       isScanning: false,
       rawDataBuffer: {},
     }))
+
+    syncScanResult(result).catch(() => {})
   },
 
   getLatestScores: () => {
