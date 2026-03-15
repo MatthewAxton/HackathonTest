@@ -21,11 +21,13 @@ export function MikeSmall({ state = 'talking' }: { state?: 'idle' | 'talking' })
   )
 }
 
-export function TalkingBubble({ text }: { text: string }) {
+export function TalkingBubble({ text, onComplete }: { text: string; onComplete?: () => void }) {
   const plainText = text.replace(/<[^>]*>/g, '')
   const [charIndex, setCharIndex] = useState(0)
   const done = charIndex >= plainText.length
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const onCompleteRef = useRef(onComplete)
+  onCompleteRef.current = onComplete
 
   useEffect(() => {
     setCharIndex(0)
@@ -44,6 +46,10 @@ export function TalkingBubble({ text }: { text: string }) {
     }, 40)
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [text, plainText])
+
+  useEffect(() => {
+    if (done) onCompleteRef.current?.()
+  }, [done])
 
   if (done) {
     return <span dangerouslySetInnerHTML={{ __html: text }} />

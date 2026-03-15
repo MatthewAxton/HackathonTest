@@ -12,7 +12,7 @@ import { initPoseTracker, startPoseTracking, stopPoseTracking, onPoseFrame } fro
 import { useScanStore } from '../../store/scanStore'
 import { useSessionStore } from '../../store/sessionStore'
 import { playScanStart, playScanComplete, playBadgeEarned } from '../../lib/sounds'
-import { SCAN_PASSAGE, matchWordsToPassage } from '../../lib/wordTracker'
+import { getPromptCategory } from '../../lib/goalPromptMap'
 
 function computeStdDev(values: number[]): number {
   if (values.length < 2) return 0
@@ -37,7 +37,7 @@ export default function RadarScan() {
   const [wpm, setWpm] = useState(0)
   const [fillers, setFillers] = useState(0)
   const [transcriptStatus, setTranscriptStatus] = useState('')
-  const [matchedWordCount, setMatchedWordCount] = useState(0)
+  const [liveTranscript, setLiveTranscript] = useState('')
   const micStarted = useRef(false)
   const scanFinished = useRef(false)
 
@@ -53,6 +53,15 @@ export default function RadarScan() {
   const jawTensions = useRef<number[]>([])
   const lipCompressions = useRef<number[]>([])
   const gazeConfidences = useRef<number[]>([])
+
+  // Goal-driven prompt
+  const userGoal = useSessionStore((s) => s.userGoal)
+  const getUnusedPrompt = useSessionStore((s) => s.getUnusedPrompt)
+  const [prompt] = useState(() => {
+    const category = getPromptCategory(userGoal, 'casual')
+    return getUnusedPrompt(category)
+  })
+  const isReading = userGoal === 'reading'
 
   // Start scan in store
   const startScan = useScanStore((s) => s.startScan)
@@ -106,8 +115,7 @@ export default function RadarScan() {
     })
     const unsubTranscript = onTranscript((event) => {
       if (event.isFinal) wordCountRef.current = event.wordCount
-      const matched = matchWordsToPassage(event.text)
-      setMatchedWordCount(prev => Math.max(prev, matched))
+      setLiveTranscript(event.text)
     })
     return () => {
       unsubGaze()
@@ -254,7 +262,7 @@ export default function RadarScan() {
       <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 20 }}>
         <div style={{ ...glassCard, fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px #ef4444', animation: 'pulse 1.5s ease-in-out infinite' }} />
-          30-Second Scan
+          {userGoal ? `${userGoal.charAt(0).toUpperCase() + userGoal.slice(1)} Scan` : '30-Second Scan'}
         </div>
       </div>
 
@@ -298,31 +306,20 @@ export default function RadarScan() {
         </div>
       </div>
 
-      {/* Bottom-center: Reading passage */}
+      {/* Bottom-center: Prompt */}
       <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 20, width: '90%', maxWidth: 640 }}>
         <div style={{ ...glassCard, textAlign: 'center', padding: '16px 24px' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'rgba(255,255,255,0.35)', marginBottom: 8, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
-            <span>Read This Passage Aloud</span>
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>📖 {matchedWordCount}/{SCAN_PASSAGE.split(/\s+/).length} words</span>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'rgba(255,255,255,0.35)', marginBottom: 8 }}>
+            {isReading ? 'Read This Aloud' : 'Speak About This Topic'}
           </div>
-          <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.8 }}>
-            {SCAN_PASSAGE.split(/\s+/).map((word, i) => {
-              const isCompleted = i < matchedWordCount
-              const isCurrent = i === matchedWordCount
-              return (
-                <span key={i} style={{
-                  color: isCompleted ? '#58CC02'
-                    : isCurrent ? '#C28FE7'
-                    : 'rgba(255,255,255,0.35)',
-                  fontWeight: isCurrent ? 800 : 600,
-                  transition: 'color 0.2s, font-weight 0.2s',
-                  ...(isCurrent ? { textShadow: '0 0 8px rgba(194,143,231,0.5)' } : {}),
-                }}>
-                  {word}{' '}
-                </span>
-              )
-            })}
+          <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.8, color: 'rgba(255,255,255,0.9)' }}>
+            {prompt}
           </div>
+          {liveTranscript && (
+            <div style={{ marginTop: 10, fontSize: 13, fontWeight: 500, fontStyle: 'italic', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5, maxHeight: 60, overflow: 'hidden' }}>
+              {liveTranscript}
+            </div>
+          )}
         </div>
       </div>
 
